@@ -39,7 +39,7 @@ ifdef DEFINES
    CFLAGS += $(DEFINES)
 endif
 
-OBJ += main.o main_menu.o serial.o options.o sensors.o trouble_code_reader.o custom_gui.o error_handlers.o about.o
+OBJ += main.o main_menu.o serial.o options.o sensors.o trouble_code_reader.o custom_gui.o error_handlers.o about.o reset.o
 BIN = ScanTool.exe
 
 ifdef MINGDIR
@@ -93,3 +93,6 @@ error_handlers.o: error_handlers.c globals.h error_handlers.h
 
 about.o: about.c globals.h custom_gui.h serial.h sensors.h options.h version.h about.h
 	$(CC) $(CFLAGS) -c about.c
+
+reset.o: reset.c globals.h custom_gui.h main_menu.h serial.h
+	$(CC) $(CFLAGS) -c reset.c

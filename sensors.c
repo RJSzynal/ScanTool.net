@@ -5,6 +5,7 @@
 #include "error_handlers.h"
 #include "sensors.h"
 #include "custom_gui.h"
+#include "reset.h"
 
 #define MSG_TOGGLE   MSG_USER
 #define MSG_UPDATE   MSG_USER + 1
@@ -46,6 +47,7 @@ static int page_number_proc(int msg, DIALOG *d, int c);
 static int inst_refresh_rate_proc(int msg, DIALOG *d, int c);
 static int avg_refresh_rate_proc(int msg, DIALOG *d, int c);
 static int page_updn_handler_proc(int msg, DIALOG *d, int c);
+static int genuine_proc(int msg, DIALOG *d, int c);
 
 // Sensor formulae:
 static void throttle_position_formula(int data, char *buf); // Page 1
@@ -237,6 +239,7 @@ DIALOG sensor_dialog[] =
    { page_flipper_proc,      340, 425, 75,  30, C_BLACK, C_DARK_YELLOW, 'p',  D_EXIT, -1,  0,   "&Previous",        NULL, NULL },
    { page_flipper_proc,      425, 425, 55,  30, C_BLACK, C_GREEN,       'x',  D_EXIT, 1,   0,   "Ne&xt",            NULL, NULL },
    { page_number_proc,       300, 440, 36,  18, C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   NULL,               NULL, NULL },
+   { genuine_proc,        0,   0,   0,  0,  0,           0,       0,    0,      0,   0,   NULL,                NULL, NULL },   
    { NULL,                   0,   0,   0,   0,  0,       0,             0,    0,      0,   0,   NULL,               NULL, NULL }
 };
 
@@ -1002,44 +1005,43 @@ int sensor_proc(int msg, DIALOG *d, int c)
 
                      return D_REDRAWME; //tell the parent control to redraw itself
                   }
-               }
-            }
-            
-            if (serial_time_out) // if timeout occured,
-            {
-               receiving_response = FALSE; // we're not waiting for a response any more
-               strcpy(sensor->screen_buf, "N/A");
-            
-               if (num_of_sensors_timed_out >= SENSORS_TO_TIME_OUT)
-               {
-                  num_of_sensors_timed_out = 0;
-                  device_connected = FALSE;
-                  if  (!ignore_device_not_connected)
+                  else if (serial_time_out) // if timeout occured,
                   {
-                     ret = alert3("Device is not responding.", "Please check that it is connected", "and the port settings are correct", "&OK", "&Configure Port", "&Ignore", 'o', 'c', 'i');
-                     if (ret == 2)
-                        display_options();   // let the user choose correct settings
-                     else if (ret == 3)
-                        ignore_device_not_connected = TRUE;
+                     receiving_response = FALSE; // we're not waiting for a response any more
+                     strcpy(sensor->screen_buf, "N/A");
+
+                     if (num_of_sensors_timed_out >= SENSORS_TO_TIME_OUT)
+                     {
+                        num_of_sensors_timed_out = 0;
+                        device_connected = FALSE;
+                        if  (!ignore_device_not_connected)
+                        {
+                           ret = alert3("Device is not responding.", "Please check that it is connected", "and the port settings are correct", "&OK", "&Configure Port", "&Ignore", 'o', 'c', 'i');
+                           if (ret == 2)
+                              display_options();   // let the user choose correct settings
+                           else if (ret == 3)
+                              ignore_device_not_connected = TRUE;
+                        }
+                     }
+                     else
+                        num_of_sensors_timed_out++;
+
+                     while (comport.status == NOT_OPEN)
+                     {
+                        if (alert("Port is not ready.", "Please check that you specified the correct port", "and that no other application is using it", "&Configure Port", "&Ignore", 'c', 'i') == 1)
+                           display_options(); // let the user choose correct settings
+                        else
+                           comport.status = USER_IGNORED;
+                     }
+
+                     stop_serial_timer();
+
+                     /* if current_sensor is the last sensor, set it to 0; otherwise current_sensor++ */
+                     current_sensor = (current_sensor == sensors_on_page - 1) ? 0 : current_sensor + 1;
+
+                     return D_REDRAWME;
                   }
                }
-               else
-                  num_of_sensors_timed_out++;
-
-               while (comport.status == NOT_OPEN)
-               {
-                  if (alert("Port is not ready.", "Please check that you specified the correct port", "and that no other application is using it", "&Configure Port", "&Ignore", 'c', 'i') == 1)
-                     display_options(); // let the user choose correct settings
-                  else
-                     comport.status = USER_IGNORED;
-               }
-            
-               stop_serial_timer();
-
-               /* if current_sensor is the last sensor, set it to 0; otherwise current_sensor++ */
-               current_sensor = (current_sensor == sensors_on_page - 1) ? 0 : current_sensor + 1;
-            
-               return D_REDRAWME;
             }
          }
          break;
@@ -1478,4 +1480,14 @@ void mil_time_formula(int data, char *buf)
 void clr_time_formula(int data, char *buf)
 {
    sprintf(buf, "%i hrs %i min", data/60, data%60);
+}
+
+
+int genuine_proc(int msg, DIALOG *d, int c)
+{
+   if (msg == MSG_IDLE)
+      if (is_not_genuine_scan_tool == TRUE)
+               return D_CLOSE;
+      
+   return D_O_K;
 }

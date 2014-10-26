@@ -650,7 +650,7 @@ int tr_code_proc(int msg, DIALOG *d, int c)
                      if ((get_number_of_codes() != num_of_codes_reported) && (get_number_of_codes() - pending_codes_cnt != num_of_codes_reported))
                      {
                         sprintf(buf1, "Vehicle reported %i Diagnostic Trouble Codes (DTCs).", num_of_codes_reported);
-                        sprintf(buf2, "However, %i DTC(s) have been successfully read.", get_number_of_codes());
+                        sprintf(buf2, "However, %i non-pending DTC(s) have been successfully read.", get_number_of_codes() - pending_codes_cnt);
                         alert(buf1, buf2, "Try reading codes again.", "OK", NULL, 0, 0);
                      }
 

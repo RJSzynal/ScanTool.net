@@ -1,21 +1,5 @@
 /*
- * ScanTool.net version 1.08 (Jan 12)
- *    + fixed problem with ECUs that pad the response with 0's (i.e., '41 05 7C 00 00 00')
- *    + removed references to "early Beta" from non-supported function descriptions (Apr 8)
- * ScanTool.net version 1.07, beta
- * started on January 2, 2003
- *    + added the rest of the sensors defined in SAE J1979 (APR2002)
- *    + cleaned up the code:
- *        = set_window_close_button is deprecated in the current version of Allegro (4.1.11 (WIP))
- *        = removed redundant formulas in sensors.c
- *    + added the rest of "OBD requirements" to sensors.c
- *    + added COM ports 5-8 to options.c
- *    + updated codes.dat with latest generic P and U codes, and removed B and C codes
- *    + system information dialog supports a wider range of platforms
- *    
- *    TODO:
- *    - pending DTCs
- *    - freeze frames
+ * ScanTool.net version 1.14 (May 23, 2008)
  */
 
 #include <string.h>
@@ -66,6 +50,8 @@ static void init()
 {
    char temp_buf[256];
 
+   is_not_genuine_scan_tool = FALSE;
+   
    /* initialize some varaibles with default values */
    strcpy(options_file_name, "scantool.cfg");
    strcpy(data_file_name, "scantool.dat");

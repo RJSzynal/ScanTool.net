@@ -35,6 +35,9 @@
 #define C_GRAY          50
 #define C_LIGHT_GRAY    55
 
+//
+int is_not_genuine_scan_tool;
+
 // Options
 int system_of_measurements;
 int display_mode;
@@ -48,8 +51,8 @@ char log_file_name[20];
 char comm_log_file_name[20];
 #endif
 
-void reset_chip();
 void write_log(const char *log_string);
+
 #ifdef LOG_COMMS
 void write_comm_log(const char *marker, const char *data);
 #endif

@@ -12,6 +12,8 @@
    #define COM8   7
    #define BAUD_RATE_9600    9600
    #define BAUD_RATE_38400   38400
+   #define BAUD_RATE_115200  115200
+   #define BAUD_RATE_230400  230400
 #else
    #define DZCOMM_SECONDARY_INCLUDE
    #include <dzcomm.h>
@@ -59,6 +61,7 @@
 #define INTERFACE_ELM322   14
 #define INTERFACE_ELM323   15
 #define INTERFACE_ELM327   16
+#define GENUINE_ELMSCAN5   17
 
 // timeouts
 #define OBD_REQUEST_TIMEOUT   9900

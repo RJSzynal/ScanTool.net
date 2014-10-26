@@ -367,6 +367,8 @@ int process_response(const char *cmd_sent, char *msg_received)
       return INTERFACE_ELM323;
    if (strncmp(msg_received, "ELM327", 6) == 0)
       return INTERFACE_ELM327;
+   if (strstr(msg_received, "SCANTOOL.NET"))
+      return GENUINE_ELMSCAN5;
 
    return RUBBISH;
 }

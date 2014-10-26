@@ -1,18 +1,18 @@
 [Project]
 FileName=ScanTool.dev
 Name=ScanTool
-UnitCount=25
+UnitCount=27
 Icon=
 ObjFile=
 Type=0
 Ver=1
 ObjFiles=""
 Includes=""
-Libs=C:\Dev-Cpp\lib
+Libs=C:\Dev-Cpp\lib;C:\allegro\lib\mingw32
 PrivateResource=tmp.rc
 ResourceIncludes=
-Compiler=-DDEBUG_@@_
-Linker=-lalld -DDEBUG_@@_
+Compiler=-DALLEGRO_STATICLINK_@@_-Wall_@@_-Werror_@@_-O3_@@_-fexpensive-optimizations_@@_-s_@@_-mwindows_@@_
+Linker=-lalleg_s_@@_-lkernel32 -luser32 -lgdi32 -lcomdlg32 -lole32 -ldinput -lddraw -ldxguid -lwinmm -ldsound_@@_
 IsCpp=0
 ExeOutput=
 ObjectOutput=
@@ -28,7 +28,7 @@ SupportXPThemes=0
 CompilerSet=0
 CompilerSettings=0000000000000000000000
 UseCustomMakefile=0
-CustomMakefile=
+CustomMakefile=makefile
 
 [Views]
 ProjectView=1
@@ -296,4 +296,24 @@ Link=0
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
+
+[Unit26]
+FileName=reset.h
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit27]
+FileName=reset.c
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c reset.c -o reset.o $(CFLAGS)
 
