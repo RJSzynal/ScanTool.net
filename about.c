@@ -52,7 +52,7 @@ static DIALOG about_dialog[] =
 static DIALOG thanks_dialog[] =
 {
    /* (proc)            (x)  (y)  (w)  (h)  (fg)   (bg)            (key) (flags) (d1) (d2) (dp)      (dp2) (dp3) */
-   { d_shadow_box_proc, 0,   0,   608, 266, C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   NULL,     NULL, NULL },
+   { d_shadow_box_proc, 0,   0,   608, 290, C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   NULL,     NULL, NULL },
    { d_shadow_box_proc, 0,   0,   608, 24,  C_BLACK, C_DARK_GRAY,   0,    0,      0,   0,   NULL,     NULL, NULL },
    { caption_proc,      304, 2,   301, 19,  C_WHITE, C_TRANSP,      0,    0,      0,   0,   "We would like to thank the following people and organizations:", NULL, NULL },
    { d_text_proc,       24,  36,  560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- DJ Delorie (www.delorie.com) for the DJGPP compiler ", NULL, NULL },
@@ -61,8 +61,9 @@ static DIALOG thanks_dialog[] =
    { d_text_proc,       24,  108, 560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- Dim Zegebart and Neil Townsend for the DZComm serial library", NULL, NULL },
    { d_text_proc,       24,  132, 560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- Julien Cugniere for his Allegro dialog editor", NULL, NULL },
    { d_text_proc,       24,  156, 560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- Eric Botcazou and Allegro mailing list folks for their tips and suggestions", NULL, NULL },
-   { d_text_proc,       24,  180, 560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- All users who provided feedback and bug reports", NULL, NULL },
-   { d_button_proc,     248, 211, 112, 40,  C_BLACK, C_DARK_YELLOW, 'c',  D_EXIT, 0,   0,   "&Close", NULL, NULL },
+   { d_text_proc,       24,  180, 560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- Joaquín Mª López Muñoz (joaquin@tid.es) for listports library", NULL, NULL },
+   { d_text_proc,       24,  204, 560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- All users who provided feedback and bug reports", NULL, NULL },
+   { d_button_proc,     248, 235, 112, 40,  C_BLACK, C_DARK_YELLOW, 'c',  D_EXIT, 0,   0,   "&Close", NULL, NULL },
    { d_yield_proc,      0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,     NULL, NULL },
    { NULL,              0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,     NULL, NULL }
 };
@@ -91,7 +92,7 @@ static DIALOG obd_info_dialog[] =
 
 int display_about()
 {
-   strcpy(whatisit, "ScanTool.net is multi-platform, open-source software designed to work with the ElmScan family of OBD-II interfaces, our inexpensive alternatives to professional diagnostic scan tools.");
+   strcpy(whatisit, "ScanTool.net is multi-platform, open-source software designed to work with the ElmScan and OBDLink families of OBD-II interfaces, our inexpensive alternatives to professional diagnostic scan tools.");
    sprintf(whatcanitdo, "ScanTool.net v%s allows you to read and clear trouble codes, and display real-time sensor data.  Software with more advanced features, such as data logging,  virtual dashboard, and support for additional test modes is available from third-party vendors.", SCANTOOL_VERSION_STR);
    strcpy(wheretoget, "You can download the latest version of this software, and buy your scan tool from www.ScanTool.net. There, you can also find contact information for your local distributor, and links to third-party software.");
 
@@ -190,6 +191,11 @@ void format_id_string(char *str)
       str[10] = ' ';
    }
    else if (strncmp(str, "OBDLink", 7) == 0)
+   {
+      memmove(str + 8, str + 7, strlen(str) - 6);
+      str[7] = ' ';
+   }
+   else if (strncmp(str, "STN", 3) == 0)
    {
       memmove(str + 8, str + 7, strlen(str) - 6);
       str[7] = ' ';
@@ -703,7 +709,8 @@ int about_this_computer_proc(int msg, DIALOG *d, int c)
    char processor_vendor[64];
    char processor_family[64];
    char processor_model[64];
-
+   int ret;
+   
    // clear strings
    cpu_info_buf[0] = 0;
    os_type_buf[0] = 0;
@@ -712,7 +719,7 @@ int about_this_computer_proc(int msg, DIALOG *d, int c)
    processor_family[0] = 0;
    processor_model[0] = 0;
    
-   int ret = d_button_proc(msg, d, c);
+   ret = d_button_proc(msg, d, c);
    
    if (ret == D_CLOSE)
    {

@@ -1,6 +1,6 @@
 *********************************************************************
-   ScanTool.net OBD-II Software v1.15 for ElmScan and OBDLink devices
-   Copyright (C) 2009 ScanTool.net LLC, All Rights Reserved
+   ScanTool.net OBD-II Software v1.20 for ElmScan and OBDLink devices
+   Copyright (C) 2010 ScanTool.net LLC, All Rights Reserved
 *********************************************************************
 
 ======================================
@@ -59,6 +59,11 @@ Support Page located at http://www.scantool.net/support
 ========== Version History ===========
 ======================================
 
+   v1.20  -  Added dynamic COM port selector (now works with COM port numbers > COM8)
+             Fixed program freeze when opening Bluetooth COM ports
+             Fixed potential data errors due to ELM327 UART silicone errata
+             Implemented firmware version printing for new FW releases of OBDLink and OBDLink CI
+             A few small bugfixes
    v1.15  -  Added support for ElmScan 5 Compact
              Added support for OBDLink and OBDLink CI devices
              Defaults can now be set by simply deleting the CFG file

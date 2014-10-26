@@ -12,8 +12,8 @@
 #define MSG_REFRESH  MSG_USER + 2
 
 #define SENSORS_PER_PAGE      9
-#define NUM_OF_RETRIES        3
-#define SENSORS_TO_TIME_OUT   2 //number of sensors that need to time out before the warning will be issued
+#define NUM_OF_RETRIES        2
+#define SENSORS_TO_TIME_OUT   1 //number of sensors that need to time out before the warning will be issued
 #define REFRESH_RATE_PRECISION 10 // how often the samples are taken, in milliseconds
 
 // Sensor states:
@@ -787,7 +787,7 @@ int status_proc(int msg, DIALOG *d, int c)
                if (device_connected)
                   sprintf(d->dp, " COM%i ready (device connected)", comport.number + 1);
                else
-                  sprintf(d->dp, " COM%i ready (device not responding)", comport.number + 1);
+                  sprintf(d->dp, " COM%i ready (device not found)", comport.number + 1);
             }
             else
                sprintf(d->dp, " COM%i could not be opened", comport.number + 1);
@@ -824,7 +824,8 @@ int sensor_proc(int msg, DIALOG *d, int c)
    {
       reset_hardware = FALSE;	 
       receiving_response = FALSE;
-         
+      device_connected = FALSE;
+      
       reset_chip();
       return D_O_K;
    }

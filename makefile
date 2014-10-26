@@ -23,7 +23,7 @@ ifdef MINGDIR
    endif
    WINDRES = windres -I rc -O coff
    CFLAGS += -mwindows
-   OBJ = scantool.res
+   OBJ = scantool.res listports.o get_port_names.o
    EXT = .exe
 else
    LIBS = -ldzcom $(AL_LIBS)
@@ -94,5 +94,11 @@ error_handlers.o: error_handlers.c globals.h error_handlers.h
 about.o: about.c globals.h custom_gui.h serial.h sensors.h options.h version.h about.h
 	$(CC) $(CFLAGS) -c about.c
 
-reset.o: reset.c globals.h custom_gui.h main_menu.h serial.h
+reset.o: reset.c globals.h custom_gui.h main_menu.h serial.h reset.h
 	$(CC) $(CFLAGS) -c reset.c
+
+listports.o: listports.c listports.h
+	$(CC) $(CFLAGS) -c listports.c
+
+get_port_names.o: get_port_names.c listports.h get_port_names.h
+	$(CC) $(CFLAGS) -c get_port_names.c

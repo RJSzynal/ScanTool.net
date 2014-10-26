@@ -15,6 +15,10 @@
    static comm_port *com_port;
 #endif
 
+#define TX_TIMEOUT_MULTIPLIER    0
+#define TX_TIMEOUT_CONSTANT      1000
+
+
 
 //timer interrupt handler for sensor data
 static void serial_time_out_handler()
@@ -72,21 +76,26 @@ int open_comport()
 #ifdef ALLEGRO_WINDOWS
    DCB dcb;
    COMMTIMEOUTS timeouts;
+   DWORD bytes_written;
    char temp_str[16];
 #endif
-
+   
    if (comport.status == READY)    // if the comport is open,
       close_comport();    // close it
-
+   
 #ifdef ALLEGRO_WINDOWS
-   sprintf(temp_str, "COM%i", comport.number + 1);
+   // Naming of serial ports 10 and higher: See
+   // http://www.connecttech.com/KnowledgeDatabase/kdb227.htm
+   // http://support.microsoft.com/?id=115831
+   sprintf(temp_str, "\\\\.\\COM%i", comport.number + 1);
    com_port = CreateFile(temp_str, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
    if (com_port == INVALID_HANDLE_VALUE)
    {
       comport.status = NOT_OPEN; //port was not open
       return -1; // return error
    }
-
+   
+   // Setup comport
    GetCommState(com_port, &dcb);
    dcb.BaudRate = comport.baud_rate;
    dcb.ByteSize = 8;
@@ -104,12 +113,31 @@ int open_comport()
    dcb.fAbortOnError = FALSE;
    SetCommState(com_port, &dcb);
    
+   // Setup comm timeouts
    timeouts.ReadIntervalTimeout = MAXWORD;
    timeouts.ReadTotalTimeoutMultiplier = 0;
    timeouts.ReadTotalTimeoutConstant = 0;
-   timeouts.WriteTotalTimeoutMultiplier = 0;
-   timeouts.WriteTotalTimeoutConstant = 0;
+   timeouts.WriteTotalTimeoutMultiplier = TX_TIMEOUT_MULTIPLIER;
+   timeouts.WriteTotalTimeoutConstant = TX_TIMEOUT_CONSTANT;
    SetCommTimeouts(com_port, &timeouts);
+   // Hack to get around Windows 2000 multiplying timeout values by 15
+   GetCommTimeouts(com_port, &timeouts);
+   if (TX_TIMEOUT_MULTIPLIER > 0)
+      timeouts.WriteTotalTimeoutMultiplier = TX_TIMEOUT_MULTIPLIER * TX_TIMEOUT_MULTIPLIER / timeouts.WriteTotalTimeoutMultiplier;
+   if (TX_TIMEOUT_CONSTANT > 0)
+      timeouts.WriteTotalTimeoutConstant = TX_TIMEOUT_CONSTANT * TX_TIMEOUT_CONSTANT / timeouts.WriteTotalTimeoutConstant;
+   SetCommTimeouts(com_port, &timeouts);
+   
+   // If the port is Bluetooth, make sure device is active
+   PurgeComm(com_port, PURGE_TXCLEAR|PURGE_RXCLEAR);
+   WriteFile(com_port, "?\r", 2, &bytes_written, 0);
+   if (bytes_written != 2)  // If Tx timeout occured
+   {
+      PurgeComm(com_port, PURGE_TXCLEAR|PURGE_RXCLEAR);
+      CloseHandle(com_port);
+      comport.status = NOT_OPEN; //port was not open
+      return -1;
+   }
 #else
    com_port = comm_port_init(comport.number);
    comm_port_set_baud_rate(com_port, comport.baud_rate);
@@ -123,7 +151,7 @@ int open_comport()
       return -1; // return error
    }
 #endif
-
+   
    serial_time_out = FALSE;
    comport.status = READY;
    
@@ -151,22 +179,30 @@ void close_comport()
 void send_command(const char *command)
 {
    char tx_buf[32];
-   
-   sprintf(tx_buf, "%s\r", command);  // Append CR to the command
-
-#ifdef LOG_COMMS
-   write_comm_log("TX", tx_buf);
-#endif
-
 #ifdef ALLEGRO_WINDOWS
    DWORD bytes_written;
+#endif
    
+   sprintf(tx_buf, "%s\r", command);  // Append CR to the command
+   
+#ifdef ALLEGRO_WINDOWS
    PurgeComm(com_port, PURGE_TXCLEAR|PURGE_RXCLEAR);
    WriteFile(com_port, tx_buf, strlen(tx_buf), &bytes_written, 0);
+   if (bytes_written != strlen(tx_buf))
+   {
+#ifdef LOG_COMMS
+      log_comm("TX ERROR", tx_buf);  // Log transmission error
+#endif
+      return;
+   }
 #else
    comm_port_flush_output(com_port);
    comm_port_flush_input(com_port);
    comm_port_string_send(com_port, tx_buf);
+#endif
+   
+#ifdef LOG_COMMS
+   write_comm_log("TX", tx_buf);
 #endif
 }
 
@@ -174,23 +210,32 @@ void send_command(const char *command)
 int read_comport(char *response)
 {
    char *prompt_pos = NULL;
-
+   int i;
+   
 #ifdef ALLEGRO_WINDOWS
    DWORD bytes_read = 0;
    DWORD errors;
    COMSTAT stat;
+   int j;
    
    response[0] = '\0';
    ClearCommError(com_port, &errors, &stat);
    if (stat.cbInQue > 0)
       ReadFile(com_port, response, stat.cbInQue, &bytes_read, 0);
-   response[bytes_read] = '\0';
-#else
-   int i = 0;
    
-   while((response[i] = comm_port_test(com_port)) != -1) // while the serial buffer is not empty, read comport
-      i++;
-   response[i] = '\0'; // terminate string, erase -1
+   // Remove extraneous 0s
+   for (i = 0, j = 0; i < bytes_read; i++)
+      if (response[i] > 0)
+         response[j++] = response[i];
+   response[j] = 0;
+#else
+   char c;
+   
+   i = 0;
+   while((c = comm_port_test(com_port)) >= 0) // while the serial buffer is not empty, read comport
+      if (c > 0)
+         response[i++] = c;
+   response[i] = 0;
 #endif
    
    prompt_pos = strchr(response, '>');
@@ -351,12 +396,13 @@ int process_response(const char *cmd_sent, char *msg_received)
       return CAN_ERROR;
    if (strcmp(msg_received + strlen(msg_received) - 10, "BUFFERFULL") == 0)
       return BUFFER_FULL;
-   if (strcmp(msg_received, "BUSINIT:ERROR") == 0 ||
-       strcmp(msg_received, "BUSINIT:...ERROR") == 0)
-      return BUS_INIT_ERROR;
-   if (strcmp(msg_received, "BUS INIT:") == 0 ||
-       strcmp(msg_received, "BUS INIT:...") == 0)
-      return SERIAL_ERROR;
+   if (strncmp(msg_received, "BUSINIT:", 8) == 0)
+   {
+      if (strcmp(msg_received + strlen(msg_received) - 5, "ERROR") == 0)
+         return BUS_INIT_ERROR;
+      else
+         return SERIAL_ERROR;
+   }
    if (strcmp(msg_received, "?") == 0)
       return UNKNOWN_CMD;
    if (strncmp(msg_received, "ELM320", 6) == 0)
@@ -367,7 +413,9 @@ int process_response(const char *cmd_sent, char *msg_received)
       return INTERFACE_ELM323;
    if (strncmp(msg_received, "ELM327", 6) == 0)
       return INTERFACE_ELM327;
-   if (strncmp(msg_received, "OBDLink", 7) == 0)
+   if (strncmp(msg_received, "OBDLink", 7) == 0 ||
+       strncmp(msg_received, "STN1000", 7) == 0 ||
+       strncmp(msg_received, "STN11", 5) == 0)
       return INTERFACE_OBDLINK;
    if (strncmp(msg_received, "SCANTOOL.NET", 12) == 0)
       return STN_MFR_STRING;

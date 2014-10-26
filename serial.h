@@ -2,14 +2,6 @@
 #define SERIAL_H
 
 #ifdef ALLEGRO_WINDOWS
-   #define COM1   0
-   #define COM2   1
-   #define COM3   2
-   #define COM4   3
-   #define COM5   4
-   #define COM6   5
-   #define COM7   6
-   #define COM8   7
    #define BAUD_RATE_9600    9600
    #define BAUD_RATE_38400   38400
    #define BAUD_RATE_115200  115200
@@ -17,16 +9,9 @@
 #else
    #define DZCOMM_SECONDARY_INCLUDE
    #include <dzcomm.h>
-   #define COM1   _com1
-   #define COM2   _com2
-   #define COM3   _com3
-   #define COM4   _com4
-   #define COM5   _com5
-   #define COM6   _com6
-   #define COM7   _com7
-   #define COM8   _com8
    #define BAUD_RATE_9600    _9600
    #define BAUD_RATE_38400   _38400
+   #define BAUD_RATE_115200  _115200
 #endif
 
 //read_comport returned data type
@@ -66,9 +51,9 @@
 #define ELM_MFR_STRING     19
 
 // timeouts
-#define OBD_REQUEST_TIMEOUT   9900
-#define ATZ_TIMEOUT           1500
-#define AT_TIMEOUT            500
+#define OBD_REQUEST_TIMEOUT   12000
+#define ATZ_TIMEOUT           2000
+#define AT_TIMEOUT            1000
 #define ECU_TIMEOUT           5000
 
 // function prototypes
