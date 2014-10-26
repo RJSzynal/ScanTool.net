@@ -22,7 +22,7 @@
 #endif
 #define DEFAULT_SYSTEM_OF_MEASURMENTS   IMPERIAL
 #define DEFAULT_COMPORT_NUMBER          -1
-#define DEFAULT_BAUD_RATE               BAUD_RATE_38400
+#define DEFAULT_BAUD_RATE               BAUD_RATE_115200
 
 typedef struct
 {

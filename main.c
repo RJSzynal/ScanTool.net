@@ -83,7 +83,6 @@ static void init()
    /* load options from file, the defaults will be automatically substituted if file does not exist */
    write_log("\nLoading Preferences... ");
    set_config_file(options_file_name);
-   load_program_options();
    /* if config file doesn't exist or is of an incorrect version */
    if (strcmp(get_config_string(NULL, "version", ""), SCANTOOL_VERSION_STR) != 0)
    {
@@ -91,8 +90,11 @@ static void init()
       remove(options_file_name);
       set_config_file(options_file_name);
       set_config_string(NULL, "version", SCANTOOL_VERSION_STR);
+      load_program_options();  // Load defaults
       save_program_options();
    }
+   else
+      load_program_options();
    write_log("OK");
 
    display_mode |= FULLSCREEN_MODE_SUPPORTED;

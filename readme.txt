@@ -59,6 +59,7 @@ Support Page located at http://www.scantool.net/support
 ========== Version History ===========
 ======================================
 
+   v1.21  -  Made 115.2k baud rate the default
    v1.20  -  Added dynamic COM port selector (now works with COM port numbers > COM8)
              Fixed program freeze when opening Bluetooth COM ports
              Fixed potential data errors due to ELM327 UART silicone errata
