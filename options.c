@@ -13,8 +13,8 @@
    #define DEFAULT_DISPLAY_MODE         FULL_SCREEN_MODE
 #endif
 #define DEFAULT_SYSTEM_OF_MEASURMENTS   IMPERIAL
-#define DEFAULT_COMPORT_NUMBER          COM1
-#define DEFAULT_BAUD_RATE               BAUD_RATE_9600
+#define DEFAULT_COMPORT_NUMBER          -1
+#define DEFAULT_BAUD_RATE               BAUD_RATE_38400
 
 typedef struct
 {
@@ -53,6 +53,7 @@ static DIALOG options_dialog[] =
    { option_element_proc, 48,  360, 80,  10,  C_BLACK,   C_LIGHT_GRAY,  0,    0,      3,   0,   "Full Screen",             NULL, &(OPTION_ELEMENT){FULL_SCREEN_MODE} },
    { save_options_proc,   16,  384, 92,  40,  C_BLACK,   C_GREEN,       's',  D_EXIT, 0,   0,   "&Save",                   NULL, NULL                                },
    { d_button_proc,       123, 384, 92,  40,  C_BLACK,   C_DARK_YELLOW, 'c',  D_EXIT, 0,   0,   "&Cancel",                 NULL, NULL                                },
+   { d_yield_proc,        0,   0,   0,   0,   0,         0,             0,    0,      0,   0,   NULL,                      NULL, NULL                                },
    { NULL,                0,   0,   0,   0,   0,       0,               0,    0,      0,   0,   NULL,                      NULL, NULL                                }
 };
 

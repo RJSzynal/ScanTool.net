@@ -17,11 +17,11 @@ int nostretch_icon_proc(int msg, DIALOG *d, int c)
    {
       if ((d->dp2 != NULL) && (d->flags & D_GOTFOCUS))
       {
-	     butimage = (BITMAP *)d->dp2; //if we got focus, display dp2
+        butimage = (BITMAP *)d->dp2; //if we got focus, display dp2
       }
       if ((d->dp3 != NULL) && (d->flags & D_SELECTED))
       {
-	     butimage = (BITMAP *)d->dp3; // if the button was clicked, display d3
+        butimage = (BITMAP *)d->dp3; // if the button was clicked, display d3
       }
 
       /* put the graphic on screen */
@@ -54,11 +54,11 @@ int super_textbox_proc(int msg, DIALOG *d, int c)
    {
       /* tell the object to sort of draw, but only calculate the listsize */
       _draw_textbox(d->dp, &d->d1,
-		              0, /* DONT DRAW anything */
-		              d->d2, !(d->flags & D_SELECTED), 8,
-		              d->x, d->y, d->w, d->h,
-		              (d->flags & D_DISABLED),
-		              0, 0, 0);
+                    0, /* DONT DRAW anything */
+                    d->d2, !(d->flags & D_SELECTED), 8,
+                    d->x, d->y, d->w, d->h,
+                    (d->flags & D_DISABLED),
+                    0, 0, 0);
 
       if (d->d1 > height) {
          bar = 12;
@@ -70,10 +70,10 @@ int super_textbox_proc(int msg, DIALOG *d, int c)
 
       /* now do the actual drawing */
       _draw_textbox(d->dp, &d->d1, 1, d->d2,
-		              !(d->flags & D_SELECTED), 8,
-		              d->x, d->y, d->w-bar, d->h,
-		              (d->flags & D_DISABLED),
-		              fg_color, d->bg, gui_mg_color);
+                    !(d->flags & D_SELECTED), 8,
+                    d->x, d->y, d->w-bar, d->h,
+                    (d->flags & D_DISABLED),
+                    fg_color, d->bg, gui_mg_color);
 
       /* draw the frame around */
       if (d->key)
@@ -98,6 +98,7 @@ int caption_proc(int msg, DIALOG *d, int c)
    return st_ctext_proc(msg, d, c);
 }
 
+
 int st_ctext_proc(int msg, DIALOG *d, int c)
 {
    ASSERT(d);
@@ -107,7 +108,7 @@ int st_ctext_proc(int msg, DIALOG *d, int c)
       FONT *oldfont = font;
 
       if (d->dp2)
-	     font = d->dp2;
+        font = d->dp2;
 
       gui_textout_ex(screen, d->dp, d->x, d->y, fg, d->bg, TRUE);
 
@@ -116,4 +117,3 @@ int st_ctext_proc(int msg, DIALOG *d, int c)
 
    return D_O_K;
 }
-

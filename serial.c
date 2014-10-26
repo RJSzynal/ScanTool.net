@@ -367,9 +367,13 @@ int process_response(const char *cmd_sent, char *msg_received)
       return INTERFACE_ELM323;
    if (strncmp(msg_received, "ELM327", 6) == 0)
       return INTERFACE_ELM327;
-   if (strstr(msg_received, "SCANTOOL.NET"))
-      return GENUINE_ELMSCAN5;
-
+   if (strncmp(msg_received, "OBDLink", 7) == 0)
+      return INTERFACE_OBDLINK;
+   if (strncmp(msg_received, "SCANTOOL.NET", 12) == 0)
+      return STN_MFR_STRING;
+   if (strcmp(msg_received, "OBDIItoRS232Interpreter") == 0)
+      return ELM_MFR_STRING;
+   
    return RUBBISH;
 }
 
@@ -425,6 +429,7 @@ const char *get_protocol_string(int interface_type, int protocol_id)
       case INTERFACE_ELM323:
          return "ISO 9141-2 / ISO 14230-4 (KWP2000)";
       case INTERFACE_ELM327:
+      case INTERFACE_OBDLINK:
          switch (protocol_id)
          {
             case 0:

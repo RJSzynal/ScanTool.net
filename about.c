@@ -21,7 +21,7 @@ static char whatisit[256];
 static char whatcanitdo[256];
 static char wheretoget[256];
 
-static char obd_interface[16];
+static char obd_interface[64];
 static char obd_mfr[64];
 static char obd_protocol[64];
 static char obd_system[64];
@@ -45,6 +45,7 @@ static DIALOG about_dialog[] =
    { obd_info_proc,            448, 200, 160, 48,  C_BLACK, C_DARK_YELLOW, 'o',  D_EXIT, 0,   0,   "&OBD Information",     NULL, NULL },
    { thanks_proc,              448, 256, 160, 48,  C_BLACK, C_PURPLE,      'r',  D_EXIT, 0,   0,   "C&redits",             NULL, NULL },
    { d_button_proc,            448, 312, 160, 48,  C_BLACK, C_GREEN,       'm',  D_EXIT, 0,   0,   "Main &Menu",           NULL, NULL },
+   { d_yield_proc,             0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,                   NULL, NULL },
    { NULL,                     0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,                   NULL, NULL }
 };
 
@@ -62,6 +63,7 @@ static DIALOG thanks_dialog[] =
    { d_text_proc,       24,  156, 560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- Eric Botcazou and Allegro mailing list folks for their tips and suggestions", NULL, NULL },
    { d_text_proc,       24,  180, 560, 24,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "- All users who provided feedback and bug reports", NULL, NULL },
    { d_button_proc,     248, 211, 112, 40,  C_BLACK, C_DARK_YELLOW, 'c',  D_EXIT, 0,   0,   "&Close", NULL, NULL },
+   { d_yield_proc,      0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,     NULL, NULL },
    { NULL,              0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,     NULL, NULL }
 };
 
@@ -82,6 +84,7 @@ static DIALOG obd_info_dialog[] =
    { refresh_proc,         140, 144, 76,  32,  C_BLACK, C_GREEN,       0,    D_EXIT, 0,   0,   "Refresh",         NULL, NULL },
    { d_button_proc,        231, 144, 76,  32,  C_BLACK, C_DARK_YELLOW, 0,    D_EXIT, 0,   0,   "Close",           NULL, NULL },
    { obd_info_getter_proc, 0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,              NULL, NULL },
+   { d_yield_proc,         0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,              NULL, NULL },
    { NULL,                 0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,              NULL, NULL }
 };
 
@@ -179,6 +182,18 @@ void format_id_string(char *str)
       memmove(str + 7, str + 6, strlen(str) - 5);
       str[6] = ' ';
    }
+   else if (strncmp(str, "OBDLinkCI", 9) == 0)
+   {
+      memmove(str + 11, str + 9, strlen(str) - 8);
+      memmove(str + 8, str + 7, 2);
+      str[7] = ' ';
+      str[10] = ' ';
+   }
+   else if (strncmp(str, "OBDLink", 7) == 0)
+   {
+      memmove(str + 8, str + 7, strlen(str) - 6);
+      str[7] = ' ';
+   }
 }
 
 
@@ -232,108 +247,46 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
                      ;
                }
                
-               send_command("ati"); // get chip ID
+               send_command("sti");
                start_serial_timer(AT_TIMEOUT);
                device = 0;
                response[0] = 0;
-
+               
                while ((status = read_comport(buf)) != PROMPT && !serial_time_out)
                {
-                  if(status == DATA) // if new data detected in com port buffer
+                  if (status == DATA) // if new data detected in com port buffer
                      strcat(response, buf); // append contents of buf to response
                }
-
-               if (status == PROMPT)  // if we got the prompt
+               stop_serial_timer();
+               
+               if (status == PROMPT)
                {
-                  stop_serial_timer();
                   strcat(response, buf);
-                  status = process_response("ati", response);
-
-                  if (status < INTERFACE_ID)
+                  status = process_response("sti", response);
+                  
+                  if (status != INTERFACE_OBDLINK)
                   {
-                     send_command("atz"); // reset chip
-                     start_serial_timer(ATZ_TIMEOUT);
+                     send_command("ati");
+                     start_serial_timer(AT_TIMEOUT);
                      response[0] = 0;
-                     state = OBD_INFO_WAIT_ATZ;
-                  }
-                  else
-                  {
-                     format_id_string(response);
-                     strcpy(obd_interface, response);
-
-                     if ((device = status) == INTERFACE_ELM327)
+                     
+                     while ((status = read_comport(buf)) != PROMPT && !serial_time_out)
                      {
-                        send_command("at@1"); // get mfr string
-                        start_serial_timer(AT_TIMEOUT);
-                        response[0] = 0;
-
-                        while ((status = read_comport(buf)) != PROMPT && !serial_time_out)
-                        {
-                           if(status == DATA) // if new data detected in com port buffer
-                              strcat(response, buf); // append contents of buf to response
-                        }
-
-                        if (status == PROMPT)  // if we got the prompt
-                        {
-                           stop_serial_timer();
-                           strcat(response, buf);
-
-                           response[strlen(response) - 2] = 0;
-                           strcpy(obd_mfr, response);
-                           
-                           send_command("atsp0");
-                           start_serial_timer(AT_TIMEOUT);
-
-                           while ((status = read_comport(buf)) != PROMPT && !serial_time_out)
-                              ;
-
-                           if (status == PROMPT)
-                           {
-                              start_serial_timer(ECU_TIMEOUT);
-                              strcpy(obd_protocol, "waiting for ECU timeout...");
-                              state = OBD_INFO_ECU_TIMEOUT;
-                              return D_REDRAW;
-                           }
-                           else  // if serial timeout
-                           {
-                              stop_serial_timer();
-                              if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
-                                 state = OBD_INFO_START;
-                              else
-                              {
-                                 clear_obd_info();
-                                 state = OBD_INFO_IDLE;
-                                 return D_REDRAW;
-                              }
-                           }
-                        }
-                        else  // if serial timeout
-                        {
-                           stop_serial_timer();
-                           if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
-                              state = OBD_INFO_START;
-                           else
-                           {
-                              clear_obd_info();
-                              state = OBD_INFO_IDLE;
-                              return D_REDRAW;
-                           }
-                        }
+                        if (status == DATA) // if new data detected in com port buffer
+                           strcat(response, buf); // append contents of buf to response
                      }
-                     else
-                        strcpy(obd_mfr, "N/A");
-                        
-                     send_command("0100");
-                     start_serial_timer(OBD_REQUEST_TIMEOUT);
-                     response[0] = 0;
-                     strcpy(obd_protocol, "detecting...");
-                     state = OBD_INFO_WAIT_0100;
-                     return D_REDRAW;
+                     stop_serial_timer();
+                     
+                     if (status == PROMPT)
+                     {
+                        strcat(response, buf);
+                        status = process_response("ati", response);
+                     }
                   }
                }
-               else  // if serial timeout
+               
+               if (serial_time_out)  // if serial timeout
                {
-                  stop_serial_timer();
                   if (retries < OBD_INFO_MAX_RETRIES)
                   {
                      retries++;
@@ -344,7 +297,10 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
                   else
                   {
                      if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
+                     {
                         state = OBD_INFO_START;
+                        break;
+                     }
                      else
                      {
                         clear_obd_info();
@@ -352,6 +308,122 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
                         return D_REDRAW;
                      }
                   }
+                  break;
+               }
+
+               if (status < INTERFACE_ID)
+               {
+                  send_command("atz"); // reset chip
+                  start_serial_timer(ATZ_TIMEOUT);
+                  response[0] = 0;
+                  state = OBD_INFO_WAIT_ATZ;
+               }
+               else
+               {
+                  format_id_string(response);
+                  strcpy(obd_interface, response);
+                  
+                  device = status;
+                  if (device == INTERFACE_ELM327 || device == INTERFACE_OBDLINK)
+                  {
+                     send_command("at@1"); // get mfr string
+                     start_serial_timer(AT_TIMEOUT);
+                     response[0] = 0;
+
+                     while ((status = read_comport(buf)) != PROMPT && !serial_time_out)
+                     {
+                        if(status == DATA) // if new data detected in com port buffer
+                           strcat(response, buf); // append contents of buf to response
+                     }
+                     
+                     if (status == PROMPT)  // if we got the prompt
+                     {
+                        stop_serial_timer();
+                        strcat(response, buf);
+                        
+                        response[strlen(response) - 2] = 0;
+                        if (strcmp(response, "OBDII to RS232 Interpreter") == 0)
+                        {
+                           strcpy(obd_mfr, "N/A");
+                           
+                           send_command("at@2");
+                           start_serial_timer(AT_TIMEOUT);
+                           response[0] = 0;
+                           
+                           while ((status = read_comport(buf)) != PROMPT && !serial_time_out)
+                           {
+                              if(status == DATA) // if new data detected in com port buffer
+                                 strcat(response, buf); // append contents of buf to response
+                           }
+                           
+                           if (status == PROMPT)
+                           {
+                              stop_serial_timer();
+                              strcat(response, buf);
+                              
+                              response[strlen(response) - 2] = 0;
+                              if (strcmp(response, "SCANTOOL.NET") == 0)
+                                 strcpy(obd_mfr, "SCANTOOL.NET LLC");
+                           }
+                           // We'll let the next request handle serial timeout
+                        }
+                        else
+                           strcpy(obd_mfr, response);
+                        
+                        send_command("atsp0");
+                        start_serial_timer(AT_TIMEOUT);
+
+                        while ((status = read_comport(buf)) != PROMPT && !serial_time_out)
+                           ;
+                        
+                        if (status == PROMPT)
+                        {
+                           start_serial_timer(ECU_TIMEOUT);
+                           strcpy(obd_protocol, "waiting for ECU timeout...");
+                           state = OBD_INFO_ECU_TIMEOUT;
+                           return D_REDRAW;
+                        }
+                        else  // if serial timeout
+                        {
+                           stop_serial_timer();
+                           if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
+                           {
+                              state = OBD_INFO_START;
+                              break;
+                           }
+                           else
+                           {
+                              clear_obd_info();
+                              state = OBD_INFO_IDLE;
+                              return D_REDRAW;
+                           }
+                        }
+                     }
+                     else  // if serial timeout
+                     {
+                        stop_serial_timer();
+                        if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
+                        {
+                           state = OBD_INFO_START;
+                           break;
+                        }
+                        else
+                        {
+                           clear_obd_info();
+                           state = OBD_INFO_IDLE;
+                           return D_REDRAW;
+                        }
+                     }
+                  }
+                  else
+                     strcpy(obd_mfr, "N/A");
+                     
+                  send_command("0100");
+                  start_serial_timer(OBD_REQUEST_TIMEOUT);
+                  response[0] = 0;
+                  strcpy(obd_protocol, "detecting...");
+                  state = OBD_INFO_WAIT_0100;
+                  return D_REDRAW;
                }
                break;
 
@@ -365,7 +437,8 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
                   stop_serial_timer();
                   strcat(response, buf);
                   status = process_response("atz", response);
-
+                  
+                  format_id_string(response);
                   strcpy(obd_interface, response);
                   strcpy(obd_mfr, "N/A");
                   
@@ -411,7 +484,10 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
                {
                   stop_serial_timer();
                   if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
+                  {
                      state = OBD_INFO_START;
+                     break;
+                  }
                   else
                   {
                      clear_obd_info();
@@ -447,7 +523,7 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
 
                   if (status == HEX_DATA)
                   {
-                     if (device != INTERFACE_ELM327)
+                     if (device != INTERFACE_ELM327 && device != INTERFACE_OBDLINK)
                         strcpy(obd_protocol, get_protocol_string(device, 0));
                      else
                      {
@@ -468,13 +544,16 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
                            process_response("atdpn", response);
 
                            status = (response[0] == 'A') ? response[1] : response[0];
-                           strcpy(obd_protocol, get_protocol_string(INTERFACE_ELM327, status - 48));
+                           strcpy(obd_protocol, get_protocol_string(device, status - 48));
                         }
                         else // if serial timeout
                         {
                            stop_serial_timer();
                            if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
+                           {
                               state = OBD_INFO_START;
+                              break;
+                           }
                            else
                            {
                               clear_obd_info();
@@ -517,7 +596,10 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
                {
                   stop_serial_timer();
                   if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
+                  {
                      state = OBD_INFO_START;
+                     break;
+                  }
                   else
                   {
                      clear_obd_info();
@@ -567,7 +649,10 @@ int obd_info_getter_proc(int msg, DIALOG *d, int c)
                {
                   stop_serial_timer();
                   if (alert("Connection to interface was lost", NULL, NULL, "&Retry", "&Cancel", 'r', 'c') == 1)
+                  {
                      state = OBD_INFO_START;
+                     break;
+                  }
                   else
                   {
                      clear_obd_info();

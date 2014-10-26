@@ -51,7 +51,8 @@ static DIALOG main_dialog[] =
    { options_proc,      408, 273, 207, 57,  0,           0,       0,    D_EXIT, 0,   0,   NULL,                NULL, NULL },
    { about_proc,        408, 335, 207, 57,  0,           0,       0,    D_EXIT, 0,   0,   NULL,                NULL, NULL },
    { exit_proc,         408, 397, 207, 57,  0,           0,       'x',  D_EXIT, 0,   0,   NULL,                NULL, NULL },
-   { genuine_proc,        0,   0,   0,  0,  0,           0,       0,    0,      0,   0,   NULL,                NULL, NULL },   
+   { genuine_proc,      0,   0,   0,   0,   0,           0,       0,    0,      0,   0,   NULL,                NULL, NULL },
+   { d_yield_proc,      0,   0,   0,   0,   0,           0,       0,    0,      0,   0,   NULL,                NULL, NULL },
    { NULL,              0,   0,   0,   0,   0,           0,       0,    0,      0,   0,   NULL,                NULL, NULL }
 };
 
@@ -94,7 +95,6 @@ int display_main_menu()
 
    return do_dialog(main_dialog, -1);
 }
-
 
 
 int read_codes_proc(int msg, DIALOG *d, int c)
@@ -191,35 +191,46 @@ int tests_proc(int msg, DIALOG *d, int c)
 int options_proc(int msg, DIALOG *d, int c)
 {
    static int chip_was_reset = FALSE;
+   static int opened_first_time = TRUE;
    int old_port;
    int ret;
 
    switch (msg)
    {
       case MSG_GOTMOUSE: // if we got mouse, display description
-         sprintf(button_description, "Select system of measurements (US or Metric), and select serial port.");
+         sprintf(button_description, "Configure program options.");
          break;
 
       case MSG_IDLE:
-         if (comport.number == -1 && comport.status != USER_IGNORED)
-            display_options();
-         if (comport.status == NOT_OPEN)
+         if (opened_first_time && comport.number < 0 && comport.status != USER_IGNORED)
          {
-            if (alert("COM Port could not be opened.", "Please check that port settings are correct", "and that no other application is using it", "&Configure Port", "&Ignore", 'c', 'i') == 1)
+            display_options();
+            opened_first_time = FALSE;
+         }
+         
+         while (comport.status == NOT_OPEN)
+         {
+            if (comport.number < 0)
+               ret = alert("COM Port has not been selected.", NULL, NULL, "&Configure Port", "&Ignore", 'c', 'i');
+            else
+               ret = alert("COM Port could not be opened.", "Please check that port settings are correct", "and that no other application is using it", "&Configure Port", "&Ignore", 'c', 'i');
+            
+            if (ret == 1)
                display_options();
             else
                comport.status = USER_IGNORED;
          }
-         else if ((comport.status == READY) && (chip_was_reset == FALSE)) // if the port is ready,
+         
+         if (comport.status == READY && !chip_was_reset) // if the port is ready,
          {
             reset_chip();
             chip_was_reset = TRUE;
          }
          break;
    }
-
+   
    ret = nostretch_icon_proc(msg, d, c); // call the parent object
-
+   
    if (ret == D_CLOSE)           // trap the close value
    {
       old_port = comport.number;
@@ -228,6 +239,7 @@ int options_proc(int msg, DIALOG *d, int c)
          chip_was_reset = FALSE;
       return D_REDRAWME;
    }
+   
    return ret;  // return
 }
 
@@ -287,8 +299,8 @@ int button_desc_proc(int msg, DIALOG *d, int c)
 int genuine_proc(int msg, DIALOG *d, int c)
 {
    if (msg == MSG_IDLE)
-      if (is_not_genuine_scan_tool == TRUE)
-               return D_CLOSE;
-      
+      if (is_not_genuine_scan_tool)
+         return D_CLOSE;
+   
    return D_O_K;
 }

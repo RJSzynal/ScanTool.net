@@ -61,12 +61,14 @@
 #define INTERFACE_ELM322   14
 #define INTERFACE_ELM323   15
 #define INTERFACE_ELM327   16
-#define GENUINE_ELMSCAN5   17
+#define INTERFACE_OBDLINK  17
+#define STN_MFR_STRING     18
+#define ELM_MFR_STRING     19
 
 // timeouts
 #define OBD_REQUEST_TIMEOUT   9900
 #define ATZ_TIMEOUT           1500
-#define AT_TIMEOUT            130
+#define AT_TIMEOUT            500
 #define ECU_TIMEOUT           5000
 
 // function prototypes

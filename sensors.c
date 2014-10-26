@@ -9,7 +9,7 @@
 
 #define MSG_TOGGLE   MSG_USER
 #define MSG_UPDATE   MSG_USER + 1
-#define MSG_REFRESH	MSG_USER + 2
+#define MSG_REFRESH  MSG_USER + 2
 
 #define SENSORS_PER_PAGE      9
 #define NUM_OF_RETRIES        3
@@ -105,94 +105,94 @@ static int current_page = 0;
 static float inst_refresh_rate = -1; // instantaneous refresh rate
 static float avg_refresh_rate = -1;  // average refresh rate
 
-volatile int refresh_time; // time between sensor updates
+static volatile int refresh_time; // time between sensor updates
 
 static SENSOR sensors[] =
 {
    // formula                        // label            //screen_buffer  //pid  //enabled // bytes
-   { throttle_position_formula,     "Absolute Throttle Position:",     "", "11",      1,    1 },
-   { engine_rpm_formula,            "Engine RPM:",                     "", "0C",      1,    2 },
-   { vehicle_speed_formula,         "Vehicle Speed:",                  "", "0D",      1,    1 },
-   { engine_load_formula,           "Calculated Load Value:",          "", "04",      1,    1 },
-   { timing_advance_formula,        "Timing Advance (Cyl. #1):",       "", "0E",      1,    1 },
-   { intake_pressure_formula,       "Intake Manifold Pressure:",       "", "0B",      1,    1 },
-   { air_flow_rate_formula,         "Air Flow Rate (MAF sensor):",     "", "10",      1,    2 },
-   { fuel_system1_status_formula,   "Fuel System 1 Status:",           "", "03",      1,    2 },
-   { fuel_system2_status_formula,   "Fuel System 2 Status:",           "", "03",      1,    2 },
+   { throttle_position_formula,     "Absolute Throttle Position:",     "", "11",      0,    1 },
+   { engine_rpm_formula,            "Engine RPM:",                     "", "0C",      -1,   2 },
+   { vehicle_speed_formula,         "Vehicle Speed:",                  "", "0D",      0,    1 },
+   { engine_load_formula,           "Calculated Load Value:",          "", "04",      0,    1 },
+   { timing_advance_formula,        "Timing Advance (Cyl. #1):",       "", "0E",      0,    1 },
+   { intake_pressure_formula,       "Intake Manifold Pressure:",       "", "0B",      0,    1 },
+   { air_flow_rate_formula,         "Air Flow Rate (MAF sensor):",     "", "10",      0,    2 },
+   { fuel_system1_status_formula,   "Fuel System 1 Status:",           "", "03",      0,    2 },
+   { fuel_system2_status_formula,   "Fuel System 2 Status:",           "", "03",      0,    2 },
    // Page 2
-   { short_term_fuel_trim_formula,  "Short Term Fuel Trim (Bank 1):",  "", "06",      1,    2 },
-   { long_term_fuel_trim_formula,   "Long Term Fuel Trim (Bank 1):",   "", "07",      1,    2 },
-   { short_term_fuel_trim_formula,  "Short Term Fuel Trim (Bank 2):",  "", "08",      1,    2 },
-   { long_term_fuel_trim_formula,   "Long Term Fuel Trim (Bank 2):",   "", "09",      1,    2 },
-   { intake_air_temp_formula,       "Intake Air Temperature:",         "", "0F",      1,    1 },
-   { coolant_temp_formula,          "Coolant Temperature:",            "", "05",      1,    1 },
-   { fuel_pressure_formula,         "Fuel Pressure (gauge):",          "", "0A",      1,    1 },
-   { secondary_air_status_formula,  "Secondary air status:",           "", "12",      1,    1 },
-   { pto_status_formula,            "Power Take-Off Status:",          "", "1E",      1,    1 },
+   { short_term_fuel_trim_formula,  "Short Term Fuel Trim (Bank 1):",  "", "06",      0,    2 },
+   { long_term_fuel_trim_formula,   "Long Term Fuel Trim (Bank 1):",   "", "07",      0,    2 },
+   { short_term_fuel_trim_formula,  "Short Term Fuel Trim (Bank 2):",  "", "08",      0,    2 },
+   { long_term_fuel_trim_formula,   "Long Term Fuel Trim (Bank 2):",   "", "09",      0,    2 },
+   { intake_air_temp_formula,       "Intake Air Temperature:",         "", "0F",      0,    1 },
+   { coolant_temp_formula,          "Coolant Temperature:",            "", "05",      -1,   1 },
+   { fuel_pressure_formula,         "Fuel Pressure (gauge):",          "", "0A",      0,    1 },
+   { secondary_air_status_formula,  "Secondary air status:",           "", "12",      0,    1 },
+   { pto_status_formula,            "Power Take-Off Status:",          "", "1E",      0,    1 },
    // Page 3
-   { o2_sensor_formula,             "O2 Sensor 1, Bank 1:",            "", "14",      1,    2 },
-   { o2_sensor_formula,             "O2 Sensor 2, Bank 1:",            "", "15",      1,    2 },
-   { o2_sensor_formula,             "O2 Sensor 3, Bank 1:",            "", "16",      1,    2 },
-   { o2_sensor_formula,             "O2 Sensor 4, Bank 1:",            "", "17",      1,    2 },
-   { o2_sensor_formula,             "O2 Sensor 1, Bank 2:",            "", "18",      1,    2 },
-   { o2_sensor_formula,             "O2 Sensor 2, Bank 2:",            "", "19",      1,    2 },
-   { o2_sensor_formula,             "O2 Sensor 3, Bank 2:",            "", "1A",      1,    2 },
-   { o2_sensor_formula,             "O2 Sensor 4, Bank 2:",            "", "1B",      1,    2 },
-   { obd_requirements_formula,      "OBD conforms to:",                "", "1C",      1,    1 },
+   { o2_sensor_formula,             "O2 Sensor 1, Bank 1:",            "", "14",      0,    2 },
+   { o2_sensor_formula,             "O2 Sensor 2, Bank 1:",            "", "15",      0,    2 },
+   { o2_sensor_formula,             "O2 Sensor 3, Bank 1:",            "", "16",      0,    2 },
+   { o2_sensor_formula,             "O2 Sensor 4, Bank 1:",            "", "17",      0,    2 },
+   { o2_sensor_formula,             "O2 Sensor 1, Bank 2:",            "", "18",      0,    2 },
+   { o2_sensor_formula,             "O2 Sensor 2, Bank 2:",            "", "19",      0,    2 },
+   { o2_sensor_formula,             "O2 Sensor 3, Bank 2:",            "", "1A",      0,    2 },
+   { o2_sensor_formula,             "O2 Sensor 4, Bank 2:",            "", "1B",      0,    2 },
+   { obd_requirements_formula,      "OBD conforms to:",                "", "1C",      -1,   1 },
    // Page 4
-   { o2_sensor_wrv_formula,         "O2 Sensor 1, Bank 1 (WR):",       "", "24",      1,    4 },    // o2 sensors (wide range), voltage
-   { o2_sensor_wrv_formula,         "O2 Sensor 2, Bank 1 (WR):",       "", "25",      1,    4 },
-   { o2_sensor_wrv_formula,         "O2 Sensor 3, Bank 1 (WR):",       "", "26",      1,    4 },
-   { o2_sensor_wrv_formula,         "O2 Sensor 4, Bank 1 (WR):",       "", "27",      1,    4 },
-   { o2_sensor_wrv_formula,         "O2 Sensor 1, Bank 2 (WR):",       "", "28",      1,    4 },
-   { o2_sensor_wrv_formula,         "O2 Sensor 2, Bank 2 (WR):",       "", "29",      1,    4 },
-   { o2_sensor_wrv_formula,         "O2 Sensor 3, Bank 2 (WR):",       "", "2A",      1,    4 },
-   { o2_sensor_wrv_formula,         "O2 Sensor 4, Bank 2 (WR):",       "", "2B",      1,    4 },
-   { engine_run_time_formula,       "Time Since Engine Start:",        "", "1F",      1,    2 },
+   { o2_sensor_wrv_formula,         "O2 Sensor 1, Bank 1 (WR):",       "", "24",      0,    4 },    // o2 sensors (wide range), voltage
+   { o2_sensor_wrv_formula,         "O2 Sensor 2, Bank 1 (WR):",       "", "25",      0,    4 },
+   { o2_sensor_wrv_formula,         "O2 Sensor 3, Bank 1 (WR):",       "", "26",      0,    4 },
+   { o2_sensor_wrv_formula,         "O2 Sensor 4, Bank 1 (WR):",       "", "27",      0,    4 },
+   { o2_sensor_wrv_formula,         "O2 Sensor 1, Bank 2 (WR):",       "", "28",      0,    4 },
+   { o2_sensor_wrv_formula,         "O2 Sensor 2, Bank 2 (WR):",       "", "29",      0,    4 },
+   { o2_sensor_wrv_formula,         "O2 Sensor 3, Bank 2 (WR):",       "", "2A",      0,    4 },
+   { o2_sensor_wrv_formula,         "O2 Sensor 4, Bank 2 (WR):",       "", "2B",      0,    4 },
+   { engine_run_time_formula,       "Time Since Engine Start:",        "", "1F",      0,    2 },
    // Page 5
-   { frp_relative_formula,          "FRP rel. to manifold vacuum:",    "", "22",      1,    2 },    // fuel rail pressure relative to manifold vacuum
-   { frp_widerange_formula,         "Fuel Pressure (gauge):",          "", "23",      1,    2 },    // fuel rail pressure (gauge), wide range
-   { commanded_egr_formula,         "Commanded EGR:",                  "", "2C",      1,    1 },
-   { egr_error_formula,             "EGR Error:",                      "", "2D",      1,    1 },
-   { evap_pct_formula,              "Commanded Evaporative Purge:",    "", "2E",      1,    1 },
-   { fuel_level_formula,            "Fuel Level Input:",               "", "2F",      1,    1 },
-   { warm_ups_formula,              "Warm-ups since ECU reset:",       "", "30",      1,    1 },
-   { clr_distance_formula,          "Distance since ECU reset:",       "", "31",      1,    2 },
-   { evap_vp_formula,               "Evap System Vapor Pressure:",     "", "32",      1,    2 },
+   { frp_relative_formula,          "FRP rel. to manifold vacuum:",    "", "22",      0,    2 },    // fuel rail pressure relative to manifold vacuum
+   { frp_widerange_formula,         "Fuel Pressure (gauge):",          "", "23",      0,    2 },    // fuel rail pressure (gauge), wide range
+   { commanded_egr_formula,         "Commanded EGR:",                  "", "2C",      0,    1 },
+   { egr_error_formula,             "EGR Error:",                      "", "2D",      0,    1 },
+   { evap_pct_formula,              "Commanded Evaporative Purge:",    "", "2E",      0,    1 },
+   { fuel_level_formula,            "Fuel Level Input:",               "", "2F",      0,    1 },
+   { warm_ups_formula,              "Warm-ups since ECU reset:",       "", "30",      0,    1 },
+   { clr_distance_formula,          "Distance since ECU reset:",       "", "31",      0,    2 },
+   { evap_vp_formula,               "Evap System Vapor Pressure:",     "", "32",      0,    2 },
    // Page 6
-   { o2_sensor_wrc_formula,         "O2 Sensor 1, Bank 1 (WR):",       "", "34",      1,    4 },   // o2 sensors (wide range), current
-   { o2_sensor_wrc_formula,         "O2 Sensor 2, Bank 1 (WR):",       "", "35",      1,    4 },
-   { o2_sensor_wrc_formula,         "O2 Sensor 3, Bank 1 (WR):",       "", "36",      1,    4 },
-   { o2_sensor_wrc_formula,         "O2 Sensor 4, Bank 1 (WR):",       "", "37",      1,    4 },
-   { o2_sensor_wrc_formula,         "O2 Sensor 1, Bank 2 (WR):",       "", "38",      1,    4 },
-   { o2_sensor_wrc_formula,         "O2 Sensor 2, Bank 2 (WR):",       "", "39",      1,    4 },
-   { o2_sensor_wrc_formula,         "O2 Sensor 3, Bank 2 (WR):",       "", "3A",      1,    4 },
-   { o2_sensor_wrc_formula,         "O2 Sensor 4, Bank 2 (WR):",       "", "3B",      1,    4 },
-   { mil_distance_formula,          "Distance since MIL activated:",   "", "21",      1,    2 },
+   { o2_sensor_wrc_formula,         "O2 Sensor 1, Bank 1 (WR):",       "", "34",      0,    4 },   // o2 sensors (wide range), current
+   { o2_sensor_wrc_formula,         "O2 Sensor 2, Bank 1 (WR):",       "", "35",      0,    4 },
+   { o2_sensor_wrc_formula,         "O2 Sensor 3, Bank 1 (WR):",       "", "36",      0,    4 },
+   { o2_sensor_wrc_formula,         "O2 Sensor 4, Bank 1 (WR):",       "", "37",      0,    4 },
+   { o2_sensor_wrc_formula,         "O2 Sensor 1, Bank 2 (WR):",       "", "38",      0,    4 },
+   { o2_sensor_wrc_formula,         "O2 Sensor 2, Bank 2 (WR):",       "", "39",      0,    4 },
+   { o2_sensor_wrc_formula,         "O2 Sensor 3, Bank 2 (WR):",       "", "3A",      0,    4 },
+   { o2_sensor_wrc_formula,         "O2 Sensor 4, Bank 2 (WR):",       "", "3B",      0,    4 },
+   { mil_distance_formula,          "Distance since MIL activated:",   "", "21",      0,    2 },
    // Page 7
-   { baro_pressure_formula,         "Barometric Pressure (absolute):", "", "33",      1,    1 },
-   { cat_temp_formula,              "CAT Temperature, B1S1:",          "", "3C",      1,    2 },
-   { cat_temp_formula,              "CAT Temperature, B2S1:",          "", "3D",      1,    2 },
-   { cat_temp_formula,              "CAT Temperature, B1S2:",          "", "3E",      1,    2 },
-   { cat_temp_formula,              "CAT Temperature, B2S2:",          "", "3F",      1,    2 },
-   { ecu_voltage_formula,           "ECU voltage:",                    "", "42",      1,    2 },
-   { abs_load_formula,              "Absolute Engine Load:",           "", "43",      1,    2 },
-   { eq_ratio_formula,              "Commanded Equivalence Ratio:",    "", "44",      1,    2 },
-   { amb_air_temp_formula,          "Ambient Air Temperature:",        "", "46",      1,    1 },  // same scaling as $0F
+   { baro_pressure_formula,         "Barometric Pressure (absolute):", "", "33",      0,    1 },
+   { cat_temp_formula,              "CAT Temperature, B1S1:",          "", "3C",      0,    2 },
+   { cat_temp_formula,              "CAT Temperature, B2S1:",          "", "3D",      0,    2 },
+   { cat_temp_formula,              "CAT Temperature, B1S2:",          "", "3E",      0,    2 },
+   { cat_temp_formula,              "CAT Temperature, B2S2:",          "", "3F",      0,    2 },
+   { ecu_voltage_formula,           "ECU voltage:",                    "", "42",      0,    2 },
+   { abs_load_formula,              "Absolute Engine Load:",           "", "43",      0,    2 },
+   { eq_ratio_formula,              "Commanded Equivalence Ratio:",    "", "44",      0,    2 },
+   { amb_air_temp_formula,          "Ambient Air Temperature:",        "", "46",      0,    1 },  // same scaling as $0F
    // Page 8
-   { relative_tp_formula,           "Relative Throttle Position:",     "", "45",      1,    1 },
-   { abs_tp_formula,                "Absolute Throttle Position B:",   "", "47",      1,    1 },
-   { abs_tp_formula,                "Absolute Throttle Position C:",   "", "48",      1,    1 },
-   { abs_tp_formula,                "Accelerator Pedal Position D:",   "", "49",      1,    1 },
-   { abs_tp_formula,                "Accelerator Pedal Position E:",   "", "4A",      1,    1 },
-   { abs_tp_formula,                "Accelerator Pedal Position F:",   "", "4B",      1,    1 },
-   { tac_pct_formula,               "Comm. Throttle Actuator Cntrl:",  "", "4C",      1,    1 }, // commanded TAC
-   { mil_time_formula,              "Engine running while MIL on:",    "", "4D",      1,    2 }, // minutes run by the engine while MIL activated
-   { clr_time_formula,              "Time since DTCs cleared:",        "", "4E",      1,    2 },
+   { relative_tp_formula,           "Relative Throttle Position:",     "", "45",      0,    1 },
+   { abs_tp_formula,                "Absolute Throttle Position B:",   "", "47",      0,    1 },
+   { abs_tp_formula,                "Absolute Throttle Position C:",   "", "48",      0,    1 },
+   { abs_tp_formula,                "Accelerator Pedal Position D:",   "", "49",      0,    1 },
+   { abs_tp_formula,                "Accelerator Pedal Position E:",   "", "4A",      0,    1 },
+   { abs_tp_formula,                "Accelerator Pedal Position F:",   "", "4B",      0,    1 },
+   { tac_pct_formula,               "Comm. Throttle Actuator Cntrl:",  "", "4C",      0,    1 }, // commanded TAC
+   { mil_time_formula,              "Engine running while MIL on:",    "", "4D",      0,    2 }, // minutes run by the engine while MIL activated
+   { clr_time_formula,              "Time since DTCs cleared:",        "", "4E",      0,    2 },
    { NULL,                          "",                                "", "",        0,    0 }
 };
 
-DIALOG sensor_dialog[] =
+static DIALOG sensor_dialog[] =
 {
    /* (proc)                 (x)  (y)  (w)  (h) (fg)     (bg)           (key) (flags) (d1) (d2) (dp)                (dp2) (dp3) */
    { d_clear_proc,           0,   0,   0,   0,  0,       C_WHITE,       0,    0,      0,   0,   NULL,               NULL, NULL },
@@ -239,7 +239,8 @@ DIALOG sensor_dialog[] =
    { page_flipper_proc,      340, 425, 75,  30, C_BLACK, C_DARK_YELLOW, 'p',  D_EXIT, -1,  0,   "&Previous",        NULL, NULL },
    { page_flipper_proc,      425, 425, 55,  30, C_BLACK, C_GREEN,       'x',  D_EXIT, 1,   0,   "Ne&xt",            NULL, NULL },
    { page_number_proc,       300, 440, 36,  18, C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   NULL,               NULL, NULL },
-   { genuine_proc,        0,   0,   0,  0,  0,           0,       0,    0,      0,   0,   NULL,                NULL, NULL },   
+   { genuine_proc,           0,   0,   0,   0,  0,       0,             0,    0,      0,   0,   NULL,               NULL, NULL },
+   { d_yield_proc,           0,   0,   0,   0,  0,       0,             0,    0,      0,   0,   NULL,               NULL, NULL },
    { NULL,                   0,   0,   0,   0,  0,       0,             0,    0,      0,   0,   NULL,               NULL, NULL }
 };
 
@@ -277,31 +278,31 @@ int display_sensor_dialog(int reset)
 
 
 static void calculate_refresh_rate(int sensor_state)
-{	
-	static int initialization_occured = FALSE;
+{
+   static int initialization_occured = FALSE;
    static int num_of_sensors_off = 0;
    static int reset_on_all_off_occured = FALSE;
    static int sensors_on_counter = 0;
    static float avg_refresh_rate_accumulator = 0;
    
- 	if (!initialization_occured) // we received our first ">", initialize...
-	{
- 		if (sensor_state == SENSOR_ACTIVE) // if we received HEX data
- 		{
-      	refresh_time = 0; // reset the time
-     		install_int(inc_refresh_time, REFRESH_RATE_PRECISION); // install handler
+   if (!initialization_occured) // we received our first ">", initialize...
+   {
+      if (sensor_state == SENSOR_ACTIVE) // if we received HEX data
+      {
+         refresh_time = 0; // reset the time
+         install_int(inc_refresh_time, REFRESH_RATE_PRECISION); // install handler
          initialization_occured = TRUE;
       }
-  	}
+   }
    else  // if this is not our first ">"
    {
-    	if ((num_of_sensors_off >= sensors_on_page) && !reset_on_all_off_occured) // if all sensors on page are OFF
-     	{
-    		inst_refresh_rate = -1;
-     		avg_refresh_rate = -1;
-     		reset_on_all_off_occured = TRUE;
-     		broadcast_dialog_message(MSG_REFRESH, 0);
-   	}
+      if ((num_of_sensors_off >= sensors_on_page) && !reset_on_all_off_occured) // if all sensors on page are OFF
+      {
+        inst_refresh_rate = -1;
+         avg_refresh_rate = -1;
+         reset_on_all_off_occured = TRUE;
+         broadcast_dialog_message(MSG_REFRESH, 0);
+      }
       else  // if num_of_sensors_off < sensors_on_page
       {
          if (sensor_state != SENSOR_OFF)
@@ -383,7 +384,7 @@ int page_updn_handler_proc(int msg, DIALOG *d, int c)
 
 int inst_refresh_rate_proc(int msg, DIALOG *d, int c)
 {
-	switch (msg)
+   switch (msg)
    {
       case MSG_START:
          if ((d->dp = calloc(64, sizeof(char))) == NULL)
@@ -393,7 +394,7 @@ int inst_refresh_rate_proc(int msg, DIALOG *d, int c)
       case MSG_REFRESH:
       case MSG_UPDATE:
          if (inst_refresh_rate >= 0)
-      	  sprintf(d->dp, "Instantaneous: %.2fHz", inst_refresh_rate);
+           sprintf(d->dp, "Instantaneous: %.2fHz", inst_refresh_rate);
          else
             sprintf(d->dp, "Instantaneous: N/A");
          d->flags |= D_DIRTY;
@@ -425,7 +426,7 @@ int avg_refresh_rate_proc(int msg, DIALOG *d, int c)
       case MSG_REFRESH:
       case MSG_UPDATE:
          if (avg_refresh_rate >= 0)
-      	  sprintf(d->dp, "Average: %.2fHz", avg_refresh_rate);
+           sprintf(d->dp, "Average: %.2fHz", avg_refresh_rate);
          else
             sprintf(d->dp, "Average: N/A");
          d->flags |= D_DIRTY;
@@ -448,12 +449,15 @@ int avg_refresh_rate_proc(int msg, DIALOG *d, int c)
 void load_sensor_states()
 {
    int i;
+   int setting;
    char temp_buf[64];
    
    for (i = 0; sensors[i].formula; i++)
    {
       sprintf(temp_buf, "sensor%i", i);
-      sensors[i].enabled = get_config_int("sensors", temp_buf, TRUE);
+      setting = get_config_int("sensors", temp_buf, 0x12345678);
+      if (setting != 0x12345678)
+         sensors[i].enabled = setting;
    }
 }
 
@@ -475,15 +479,22 @@ void fill_sensors(int page_number)
 {
    int i;
    int index = 0;
+   int sensor_index;
+   const char *def_str;
    
    for (i = 0; sensor_dialog[i].proc; i++)
    {
       if (sensor_dialog[i].proc == sensor_proc)
       {
-         if (sensors[index + page_number * SENSORS_PER_PAGE].formula)
+         sensor_index = index + page_number * SENSORS_PER_PAGE;
+         if (sensors[sensor_index].formula)
          {
-            strcpy(sensors[index + page_number * SENSORS_PER_PAGE].screen_buf, "N/A");
-            sensor_dialog[i].dp3 = &sensors[index + page_number * SENSORS_PER_PAGE];
+            if (sensors[sensor_index].enabled)
+               def_str = "N/A";
+            else
+               def_str = "not monitoring";
+            strcpy(sensors[sensor_index].screen_buf, def_str);
+            sensor_dialog[i].dp3 = &sensors[sensor_index];
             index++;
          }
          else
@@ -931,6 +942,8 @@ int sensor_proc(int msg, DIALOG *d, int c)
                   
                   if (d->flags & D_DISABLED) // if the sensor is disabled
                   {
+                     if (response_status == PROMPT)
+                        receiving_response = FALSE;
                      current_sensor = (current_sensor == sensors_on_page - 1) ? 0 : current_sensor + 1; // go to the next sensor
                      return D_O_K;
                   }
@@ -988,8 +1001,7 @@ int sensor_proc(int msg, DIALOG *d, int c)
                         display_error_message(response_type, FALSE);
                         retry_attempts = NUM_OF_RETRIES;
                      }
-                     // for other errors, try to re-send the request, do nothing if successful and alert user if failed
-                     else
+                     else // for other errors, try to re-send the request, do nothing if successful and alert user if failed
                      {
                         if (retry_attempts > 0)
                         {
@@ -1003,7 +1015,7 @@ int sensor_proc(int msg, DIALOG *d, int c)
                         }
                      }
 
-                     return D_REDRAWME; //tell the parent control to redraw itself
+                     return D_REDRAWME;
                   }
                   else if (serial_time_out) // if timeout occured,
                   {
@@ -1047,11 +1059,6 @@ int sensor_proc(int msg, DIALOG *d, int c)
          break;
    } // end of switch (msg)
 
-   if (d->flags & D_DISABLED)
-   {
-      strcpy(sensor->screen_buf, "not monitoring");
-   }
-
    return D_O_K;
 }
 
@@ -1083,7 +1090,7 @@ void coolant_temp_formula(int data, char *buf)
 void fuel_system_status_formula(int data, char *buf)
 {
    if (data == 0)
-   	sprintf(buf, "unused");
+      sprintf(buf, "unused");
    else if (data == 0x01)
       sprintf(buf, "open loop");
    else if (data == 0x02)
@@ -1220,58 +1227,58 @@ void o2_sensor_formula(int data, char *buf)
 //Power Take-Off Status: PID 1E
 void pto_status_formula(int data, char *buf)
 {
- 	if ((data & 0x01) == 0x01)
-		sprintf(buf, "active");
-	else
- 		sprintf(buf, "not active");	
+   if ((data & 0x01) == 0x01)
+      sprintf(buf, "active");
+   else
+      sprintf(buf, "not active");	
 }
 
 // OBD requirement to which vehicle is designed: PID 1C
 void obd_requirements_formula(int data, char *buf)
 {
-	switch (data)
-	{
-		case 0x01:
-			sprintf(buf, "OBD-II (California ARB)");
-			break;
-		case 0x02:
-			sprintf(buf, "OBD (Federal EPA)");
-			break;
-		case 0x03:
-			sprintf(buf, "OBD and OBD-II");
-			break;
-		case 0x04:
-			sprintf(buf, "OBD-I");
-			break;
-		case 0x05:
-			sprintf(buf, "Not OBD compliant");
-			break;
-		case 0x06:
-			sprintf(buf, "EOBD (Europe)");
-			break;
-		case 0x07:
-			sprintf(buf, "EOBD and OBD-II");
-			break;
-		case 0x08:
-			sprintf(buf, "EOBD and OBD");
-			break;
-		case 0x09:
-			sprintf(buf, "EOBD, OBD and OBD-II");
-			break;
-		case 0x0A:
-			sprintf(buf, "JOBD (Japan)");
-			break;
-		case 0x0B:
-			sprintf(buf, "JOBD and OBD-II");
-			break;
-		case 0x0C:
-			sprintf(buf, "JOBD and EOBD");
-			break;
-		case 0x0D:
-			sprintf(buf, "JOBD, EOBD, and OBD-II");
-			break;
-		default:
-			sprintf(buf, "Unknown: 0x%02X", data);
+   switch (data)
+   {
+      case 0x01:
+         sprintf(buf, "OBD-II (California ARB)");
+         break;
+      case 0x02:
+         sprintf(buf, "OBD (Federal EPA)");
+         break;
+      case 0x03:
+         sprintf(buf, "OBD and OBD-II");
+         break;
+      case 0x04:
+         sprintf(buf, "OBD-I");
+         break;
+      case 0x05:
+         sprintf(buf, "Not OBD compliant");
+         break;
+      case 0x06:
+         sprintf(buf, "EOBD (Europe)");
+         break;
+      case 0x07:
+         sprintf(buf, "EOBD and OBD-II");
+         break;
+      case 0x08:
+         sprintf(buf, "EOBD and OBD");
+         break;
+      case 0x09:
+         sprintf(buf, "EOBD, OBD and OBD-II");
+         break;
+      case 0x0A:
+         sprintf(buf, "JOBD (Japan)");
+         break;
+      case 0x0B:
+         sprintf(buf, "JOBD and OBD-II");
+         break;
+      case 0x0C:
+         sprintf(buf, "JOBD and EOBD");
+         break;
+      case 0x0D:
+         sprintf(buf, "JOBD, EOBD, and OBD-II");
+         break;
+      default:
+         sprintf(buf, "Unknown: 0x%02X", data);
    }
 }
 
@@ -1487,7 +1494,7 @@ int genuine_proc(int msg, DIALOG *d, int c)
 {
    if (msg == MSG_IDLE)
       if (is_not_genuine_scan_tool == TRUE)
-               return D_CLOSE;
-      
+         return D_CLOSE;
+   
    return D_O_K;
 }

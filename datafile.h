@@ -33,4 +33,3 @@
 #define TESTS1_BMP                       27       /* BMP  */
 #define TESTS2_BMP                       28       /* BMP  */
 #define TESTS3_BMP                       29       /* BMP  */
-

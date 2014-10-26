@@ -117,6 +117,7 @@ static DIALOG read_codes_dialog[] =
    { clear_codes_proc,    381, 408, 110, 48,  C_BLACK, C_DARK_YELLOW, 'c',  D_EXIT, 0,   0,   "&Clear",                              NULL, NULL },
    { d_button_proc,       506, 408, 110, 48,  C_BLACK, C_GREEN,       'm',  D_EXIT, 0,   0,   "Main &Menu",                          NULL, NULL },
    { tr_code_proc,        0,   0,   0,   0,   0,     0,               0,    0,      0,   0,   NULL,                                  NULL, NULL },
+   { d_yield_proc,        0,   0,   0,   0,   0,     0,               0,    0,      0,   0,   NULL,                                  NULL, NULL },
    { NULL,                0,   0,   0,   0,   0,     0,               0,    0,      0,   0,   NULL,                                  NULL, NULL }
 };
 
@@ -130,8 +131,9 @@ static DIALOG confirm_clear_dialog[] =
    { caption_proc,       220, 372, 204, 24,  C_RED,   C_TRANSP,      0,    0,      0,   0,   "Are you sure you want to do this?", NULL, NULL },
    { d_button_proc,      72,  408, 140, 35,  C_BLACK, C_GREEN,       'y',  D_EXIT, 0,   0,   "&Yes, I am sure",                   NULL, NULL },
    { d_button_proc,      228, 408, 140, 35,  C_BLACK, C_DARK_YELLOW, 'n',  D_EXIT, 0,   0,   "&No, cancel",                       NULL, NULL },
+   { d_yield_proc,       0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,                                NULL, NULL },
    { NULL,               0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,                                NULL, NULL }
-}; 
+};
 
 
 int display_trouble_codes()

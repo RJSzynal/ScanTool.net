@@ -1,7 +1,3 @@
-/*
- * ScanTool.net version 1.14 (May 23, 2008)
- */
-
 #include <string.h>
 #include "globals.h"
 #include "main_menu.h"
