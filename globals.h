@@ -11,6 +11,7 @@
 // system_of_measurements
 #define METRIC     0
 #define IMPERIAL   1
+#define BRITISH    2
 
 // Display mode flags
 #define FULL_SCREEN_MODE            0

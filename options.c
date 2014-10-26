@@ -32,6 +32,7 @@ typedef struct
 
 static OPTION_ELEMENT option_metric = {METRIC};
 static OPTION_ELEMENT option_imperial = {IMPERIAL};
+static OPTION_ELEMENT option_british = {BRITISH};
 static OPTION_ELEMENT option_baud_rate_9600 = {BAUD_RATE_9600};
 static OPTION_ELEMENT option_baud_rate_38400 = {BAUD_RATE_38400};
 static OPTION_ELEMENT option_baud_rate_115200 = {BAUD_RATE_115200};
@@ -56,20 +57,21 @@ static DIALOG options_dialog[] =
    { d_shadow_box_proc,   0,   0,   231, 24,  0,       C_DARK_GRAY,   0,    0,      0,   0,   NULL,                      NULL, NULL                     },
    { caption_proc,        115, 2,   113, 19,  C_WHITE, C_TRANSP,      0,    0,      0,   0,   "Program Options",         NULL, NULL                     },
    { d_text_proc,         16,  32,  200, 16,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "System Of Measurements:", NULL, NULL                     },
-   { option_element_proc, 48,  56,  80,  10,  C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   "Metric",                  NULL, &option_metric           },
-   { option_element_proc, 48,  72,  88,  10,  C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   "US",                      NULL, &option_imperial         },
-   { d_text_proc,         16,  96,  152, 16,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "COM Port:",               NULL, NULL                     },
-   { comport_list_proc,   48,  120, 94,  148, C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   listbox_getter,            NULL, NULL                     },
-   { d_text_proc,         16,  282, 200, 16,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "Baud Rate:",              NULL, NULL                     },
-   { option_element_proc, 20,  306, 80,  10,  C_BLACK, C_LIGHT_GRAY,  0,    0,      1,   0,   "9600",                    NULL, &option_baud_rate_9600   },
-   { option_element_proc, 110, 306, 80,  10,  C_BLACK, C_LIGHT_GRAY,  0,    0,      1,   0,   "38400",                   NULL, &option_baud_rate_38400  },
-   { option_element_proc, 20,  322, 80,  10,  C_BLACK, C_LIGHT_GRAY,  0,    0,      1,   0,   "115200",                  NULL, &option_baud_rate_115200 },
+   { option_element_proc, 68,  56,  72,  20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   "Metric",                  NULL, &option_metric           },
+   { option_element_proc, 8,   56,  50,  20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   "US",                      NULL, &option_imperial         },
+   { option_element_proc, 150, 56,  73,  20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   "British",                 NULL, &option_british          },
+   { d_text_proc,         16,  86,  152, 16,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "COM Port:",               NULL, NULL                     },
+   { comport_list_proc,   48,  110, 94,  148, C_BLACK, C_LIGHT_GRAY,  0,    0,      0,   0,   listbox_getter,            NULL, NULL                     },
+   { d_text_proc,         16,  264, 200, 16,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "Baud Rate:",              NULL, NULL                     },
+   { option_element_proc, 20,  286, 80,  20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      1,   0,   "9600",                    NULL, &option_baud_rate_9600   },
+   { option_element_proc, 110, 286, 80,  20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      1,   0,   "38400",                   NULL, &option_baud_rate_38400  },
+   { option_element_proc, 20,  308, 80,  20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      1,   0,   "115200",                  NULL, &option_baud_rate_115200 },
 #ifdef ALLEGRO_WINDOWS
-   { option_element_proc, 110, 322, 80,  10,  C_BLACK, C_LIGHT_GRAY,  0,    0,      1,   0,   "230400",                  NULL, &option_baud_rate_230400 },
+   { option_element_proc, 110, 308, 80,  20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      1,   0,   "230400",                  NULL, &option_baud_rate_230400 },
 #endif
-   { d_text_proc,         16,  346, 200, 16,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "Display Mode:",           NULL, NULL                     },
-   { option_element_proc, 48,  370, 80,  10,  C_BLACK, C_LIGHT_GRAY,  0,    0,      2,   0,   "Windowed",                NULL, &option_windowed_mode    },
-   { option_element_proc, 48,  386, 80,  10,  C_BLACK, C_LIGHT_GRAY,  0,    0,      2,   0,   "Full Screen",             NULL, &option_full_screen_mode },
+   { d_text_proc,         16,  334, 200, 16,  C_BLACK, C_TRANSP,      0,    0,      0,   0,   "Display Mode:",           NULL, NULL                     },
+   { option_element_proc, 48,  356, 120, 20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      2,   0,   "Windowed",                NULL, &option_windowed_mode    },
+   { option_element_proc, 48,  378, 120, 20,  C_BLACK, C_LIGHT_GRAY,  0,    0,      2,   0,   "Full Screen",             NULL, &option_full_screen_mode },
    { save_options_proc,   16,  410, 92,  40,  C_BLACK, C_GREEN,       's',  D_EXIT, 0,   0,   "&Save",                   NULL, NULL                     },
    { d_button_proc,       123, 410, 92,  40,  C_BLACK, C_DARK_YELLOW, 'c',  D_EXIT, 0,   0,   "&Cancel",                 NULL, NULL                     },
    { d_yield_proc,        0,   0,   0,   0,   0,       0,             0,    0,      0,   0,   NULL,                      NULL, NULL                     },

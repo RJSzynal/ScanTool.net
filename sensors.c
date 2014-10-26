@@ -1068,7 +1068,7 @@ void engine_rpm_formula(int data, char *buf)
 {
    if (system_of_measurements == METRIC)
       sprintf(buf, "%i r/min", (int)((float)data/4));
-   else   // if the system is IMPERIAL
+   else   // if the system is IMPERIAL or BRITISH
       sprintf(buf, "%i rpm", (int)((float)data/4));
 }
 
@@ -1081,7 +1081,7 @@ void engine_load_formula(int data, char *buf)
 
 void coolant_temp_formula(int data, char *buf)
 {
-   if (system_of_measurements == METRIC)
+   if (system_of_measurements == METRIC || system_of_measurements == BRITISH)
       sprintf(buf, "%i%c C", data-40, 0xB0);
    else   // if the system is IMPERIAL
       sprintf(buf, "%i%c F", (int)(((float)data-40)*9/5 + 32), 0xB0);
@@ -1123,14 +1123,14 @@ void vehicle_speed_formula(int data, char *buf)
 {
    if (system_of_measurements == METRIC)
       sprintf(buf, "%i km/h", data);
-   else   // if the system is IMPERIAL
+   else   // if the system is IMPERIAL or BRITISH
       sprintf(buf, "%i mph", (int)(data/1.609));
 }
 
 
 void intake_pressure_formula(int data, char *buf)
 {
-   if (system_of_measurements == METRIC)
+   if (system_of_measurements == METRIC || system_of_measurements == BRITISH)
       sprintf(buf, "%i kPa", data);
    else
       sprintf(buf, "%.1f inHg", data/3.386389);
@@ -1145,7 +1145,7 @@ void timing_advance_formula(int data, char *buf)
 
 void intake_air_temp_formula(int data, char *buf)
 {
-   if (system_of_measurements == METRIC)
+   if (system_of_measurements == METRIC || system_of_measurements == BRITISH)
       sprintf(buf, "%i%c C", data-40, 0xB0);
    else   // if the system is IMPERIAL
       sprintf(buf, "%i%c F", (int)(((float)data-40)*9/5 + 32), 0xB0);
@@ -1154,7 +1154,7 @@ void intake_air_temp_formula(int data, char *buf)
 
 void air_flow_rate_formula(int data, char *buf)
 {
-   if (system_of_measurements == METRIC)
+   if (system_of_measurements == METRIC || system_of_measurements == BRITISH)
       sprintf(buf, "%.2f g/s", data*0.01);
    else
       sprintf(buf, "%.1f lb/min", data*0.0013227736);
@@ -1174,7 +1174,7 @@ void fuel_pressure_formula(int data, char *buf)
 {
    if (system_of_measurements == METRIC)
       sprintf(buf, "%i kPa", data*3);
-   else   // if the system is IMPERIAL
+   else   // if the system is IMPERIAL or BRITISH
       sprintf(buf, "%.1f psi", data*3*0.145037738);
 }
 
@@ -1301,7 +1301,7 @@ void mil_distance_formula(int data, char *buf)
 {
    if (system_of_measurements == METRIC)
       sprintf(buf, "%i km", data);
-   else   // if the system is IMPERIAL
+   else   // if the system is IMPERIAL or BRITISH
       sprintf(buf, "%i miles", (int)(data/1.609));
 }
 
@@ -1315,7 +1315,7 @@ void frp_relative_formula(int data, char *buf)
 
    if (system_of_measurements == METRIC)
       sprintf(buf, "%.3f kPa", kpa);
-   else   // if the system is IMPERIAL
+   else   // if the system is IMPERIAL or BRITISH
       sprintf(buf, "%.1f PSI", psi);
 }
 
@@ -1330,7 +1330,7 @@ void frp_widerange_formula(int data, char *buf)
 
    if (system_of_measurements == METRIC)
       sprintf(buf, "%i kPa", kpa);
-   else
+   else    // if the system is IMPERIAL or BRITISH
       sprintf(buf, "%.1f PSI", psi);
 }
 
@@ -1381,25 +1381,25 @@ void clr_distance_formula(int data, char *buf)
 {
    if (system_of_measurements == METRIC)
       sprintf(buf, "%i km", data);
-   else
+   else    // if the system is IMPERIAL or BRITISH
       sprintf(buf, "%i miles", (int)(data/1.609));
 }
 
 
 void evap_vp_formula(int data, char *buf)
 {
-   if (system_of_measurements == METRIC)
+   if (system_of_measurements == METRIC || system_of_measurements == BRITISH)
       sprintf(buf, "%.2f Pa", data*0.25);
-   else
+   else    // if the system is in IMPERIAL
       sprintf(buf, "%.3f in H2O", data*0.25/249.088908);
 }
 
 
 void baro_pressure_formula(int data, char *buf)
 {
-   if (system_of_measurements == METRIC)
+   if (system_of_measurements == METRIC || system_of_measurements == BRITISH)
       sprintf(buf, "%i kPa", data);
-   else
+   else    // if the system is in IMPERIAL
       sprintf(buf, "%.1f inHg", data*0.2953);
 }
 
@@ -1422,7 +1422,7 @@ void cat_temp_formula(int data, char *buf)
    c = data*0.1 - 40; // degrees Celcius
    f = c*9/5 + 32;  // degrees Fahrenheit
    
-   if (system_of_measurements == METRIC)
+   if (system_of_measurements == METRIC || system_of_measurements == BRITISH)
       sprintf(buf, "%.1f%c C", c, 0xB0);
    else
       sprintf(buf, "%.1f%c F", f, 0xB0);
@@ -1460,7 +1460,7 @@ void amb_air_temp_formula(int data, char *buf)
    c = data-40; // degrees Celcius
    f = (float)c*9/5 + 32;  // degrees Fahrenheit
    
-   if (system_of_measurements == METRIC)
+   if (system_of_measurements == METRIC || system_of_measurements == BRITISH)
       sprintf(buf, "%i%c C", c, 0xB0);
    else
       sprintf(buf, "%i%c F", f, 0xB0);
@@ -1493,9 +1493,5 @@ void clr_time_formula(int data, char *buf)
 
 int genuine_proc(int msg, DIALOG *d, int c)
 {
-   if (msg == MSG_IDLE)
-      if (is_not_genuine_scan_tool == TRUE)
-         return D_CLOSE;
-   
    return D_O_K;
 }
