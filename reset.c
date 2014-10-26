@@ -34,17 +34,12 @@ enum ResetState
 {
    RESET_SEND_RESET_REQUEST,
    RESET_GET_REPLY_TO_RESET,
-   RESET_SEND_AT_AT1_REQUEST,
-   RESET_GET_AT_AT1_RESPONSE,
-   RESET_SEND_AT_AT2_REQUEST,
-   RESET_GET_AT_AT2_RESPONSE,
    RESET_START_ECU_TIMER,
    RESET_WAIT_FOR_ECU_TIMEOUT,
    RESET_SEND_DETECT_PROTOCOL_REQUEST,
    RESET_GET_REPLY_TO_DETECT_PROTOCOL,
    RESET_CLOSE_DIALOG,
-   RESET_INTERFACE_NOT_FOUND,
-   RESET_HANDLE_CLONE
+   RESET_INTERFACE_NOT_FOUND
 };
 
 
@@ -86,10 +81,8 @@ int Reset_get_reply_to_reset(char *response, int *device)
       strcat(response, buf);
       *device = process_response("atz", response);
       
-      if (*device == INTERFACE_ELM323)
+      if (*device == INTERFACE_ELM323 || *device == INTERFACE_ELM327)
          next_state = RESET_START_ECU_TIMER;
-      else if (*device == INTERFACE_ELM327)
-         next_state = RESET_SEND_AT_AT1_REQUEST;
       else
          next_state = RESET_CLOSE_DIALOG;
    }
@@ -101,102 +94,6 @@ int Reset_get_reply_to_reset(char *response, int *device)
    }  
    else  // serial buffer was empty, but we still got time
       next_state = RESET_GET_REPLY_TO_RESET;
-   
-   return next_state;
-}
-
-
-int Reset_send_at_at1_request(char *response)
-{
-   send_command("at@1");
-   start_serial_timer(AT_TIMEOUT);  // start serial timer
-   response[0] = 0;
-   
-   return RESET_GET_AT_AT1_RESPONSE;
-}
-
-
-int Reset_get_at_at1_response(char *response)
-{
-   char buf[128];
-   int next_state;
-   int status;
-   
-   status = read_comport(buf);                  // read comport
-   
-   if (status == DATA)                          // if new data detected in com port buffer
-   {
-      strcat(response, buf);                    // append contents of buf to response
-      next_state = RESET_GET_AT_AT1_RESPONSE;   // come back for more data
-   }
-   else if(status == PROMPT) // if '>' detected
-   {
-      stop_serial_timer();
-      strcat(response, buf);
-      status = process_response("at@1", response);
-      
-      if (status == STN_MFR_STRING)
-         next_state = RESET_START_ECU_TIMER;
-      else if (status == ELM_MFR_STRING)
-         next_state = RESET_SEND_AT_AT2_REQUEST;
-      else
-         next_state = RESET_HANDLE_CLONE;
-   }
-   else if (serial_time_out) // if the timer timed out
-   {
-      stop_serial_timer(); // stop the timer
-      alert("Interface was not found", NULL, NULL, "OK", NULL, 0, 0);
-      next_state = RESET_CLOSE_DIALOG; // close dialog
-   }
-   else  // serial buffer was empty, but we still got time
-      next_state = RESET_GET_AT_AT1_RESPONSE;
-   
-   return next_state;
-}
-
-
-int Reset_send_at_at2_request(char *response)
-{
-   send_command("at@2");
-   start_serial_timer(AT_TIMEOUT);  // start serial timer
-   response[0] = 0;
-   
-   return RESET_GET_AT_AT2_RESPONSE;
-}
-
-
-int Reset_get_at_at2_response(char *response)
-{
-   char buf[128];
-   int next_state;
-   int status;
-   
-   status = read_comport(buf);                  // read comport
-   
-   if (status == DATA)                          // if new data detected in com port buffer
-   {
-      strcat(response, buf);                    // append contents of buf to response
-      next_state = RESET_GET_AT_AT2_RESPONSE;   // come back for more data
-   }
-   else if(status == PROMPT) // if '>' detected
-   {
-      stop_serial_timer();
-      strcat(response, buf);
-      status = process_response("at@2", response);
-      
-      if (status == STN_MFR_STRING)
-         next_state = RESET_START_ECU_TIMER;
-      else
-         next_state = RESET_HANDLE_CLONE;
-   }
-   else if (serial_time_out) // if the timer timed out
-   {
-      stop_serial_timer(); // stop the timer
-      alert("Interface was not found", NULL, NULL, "OK", NULL, 0, 0);
-      next_state = RESET_CLOSE_DIALOG; // close dialog
-   }
-   else  // serial buffer was empty, but we still got time
-      next_state = RESET_GET_AT_AT2_RESPONSE;
    
    return next_state;
 }
@@ -280,19 +177,6 @@ int Reset_get_reply_to_detect_protocol(char *response)
 }
 
 
-int Reset_handle_clone()
-{
-   alert("Your device does not appear to be a genuine ElmScan 5. Due to their poor",
-         "quality and high support costs, ELM327 clones are no longer supported.",
-         "Please visit www.ScanTool.net to purchase a genuine scan tool.", "OK", NULL, 0, 0);
-   
-   is_not_genuine_scan_tool = TRUE;
-   
-   return RESET_CLOSE_DIALOG;
-   
-}
-
-
 int reset_proc(int msg, DIALOG *d, int c)
 {
    static int state = RESET_SEND_RESET_REQUEST;
@@ -317,23 +201,6 @@ int reset_proc(int msg, DIALOG *d, int c)
                state = Reset_get_reply_to_reset(response, &device);
                break;
                
-            case RESET_SEND_AT_AT1_REQUEST:
-               strcpy(reset_status_msg, "Making sure scan tool is genuine...");
-               state = Reset_send_at_at1_request(response);
-               return D_REDRAW;
-               
-            case RESET_GET_AT_AT1_RESPONSE:
-               state = Reset_get_at_at1_response(response);
-               break;
-               
-            case RESET_SEND_AT_AT2_REQUEST:
-               state = Reset_send_at_at2_request(response);
-               break;
-               
-            case RESET_GET_AT_AT2_RESPONSE:
-               state = Reset_get_at_at2_response(response);
-               break;
-               
             case RESET_START_ECU_TIMER:
                strcpy(reset_status_msg, "Waiting for ECU timeout...");
                state = Reset_start_ecu_timer();
@@ -350,10 +217,6 @@ int reset_proc(int msg, DIALOG *d, int c)
                
             case RESET_GET_REPLY_TO_DETECT_PROTOCOL:
                state = Reset_get_reply_to_detect_protocol(response);
-               break;
-               
-            case RESET_HANDLE_CLONE:
-               state = Reset_handle_clone();
                break;
                
             case RESET_CLOSE_DIALOG:
