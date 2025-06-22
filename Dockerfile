@@ -34,6 +34,13 @@ RUN apt-get update && apt-get install -y \
 
 ENV DEBUGMODE=1
 
+# Add scantool user
+RUN useradd -m scantool
+
+# Run as non privileged user
+USER scantool
+
+
 
 ## Build of the application
 FROM base AS build
