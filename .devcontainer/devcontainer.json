@@ -1,0 +1,12 @@
+{
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "dev"
+  },
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscodium": {
+    }
+  }
+}

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#define ALLEGRO_MINGW32 1
 #include <allegro.h>
 #include <winalleg.h>
 

@@ -2,6 +2,7 @@
 #define GLOBALS_H
 
 #include <stdio.h>
+#define ALLEGRO_MINGW32 1
 #include <allegro.h>
 #include "resource.h"
 

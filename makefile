@@ -1,34 +1,33 @@
-CC = gcc
+CC = i686-w64-mingw32-gcc
+WINDRES_BIN=i686-w64-mingw32-windres
+LD_FLAGS=-Xlinker --allow-multiple-definition -Xlinker -L/usr/share/mingw-w64/lib
 
 ifdef DEBUGMODE
-   CFLAGS = -g -Wall
-   AL_LIBS = -lalld
+   CFLAGS = -g -Wall ${LD_FLAGS}
    DEFINES = -DDEBUG
 else
-ifdef RELEASE
-   CFLAGS = -Wall -O3 -fexpensive-optimizations -s
-   AL_LIBS = -lalleg
-else
-   CFLAGS = -O -Wall
-   AL_LIBS = -lalleg
+	ifdef RELEASE
+		CFLAGS = -Wall -O3 -fexpensive-optimizations -s ${LD_FLAGS}
+	else
+		CFLAGS = -O -Wall ${LD_FLAGS}
+	endif
 endif
-endif
+AL_LIBS = -lalleg
 
 ifdef MINGDIR
    ifdef STATICLINK
-      LIBS = $(AL_LIBS)_s -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lole32 -ldinput -lddraw -ldxguid -lwinmm -ldsound
-      DEFINES += -DALLEGRO_STATICLINK
+	  LIBS = $(AL_LIBS)_s -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lole32 -ldinput -lddraw -ldxguid -lwinmm -ldsound
+	  DEFINES += -DALLEGRO_STATICLINK
    else
-      LIBS = $(AL_LIBS)
+	  LIBS = $(AL_LIBS)
    endif
-   WINDRES = windres -I rc -O coff
+   WINDRES = $(WINDRES_BIN) -I rc -O coff
    CFLAGS += -mwindows
    OBJ = scantool.res listports.o get_port_names.o
-   EXT = .exe
 else
    LIBS = -ldzcom $(AL_LIBS)
-   EXT = .exe
 endif
+EXT = .exe
 
 
 ifndef NOWERROR
@@ -40,13 +39,10 @@ ifdef DEFINES
 endif
 
 OBJ += main.o main_menu.o serial.o options.o sensors.o trouble_code_reader.o custom_gui.o error_handlers.o about.o reset.o
-BIN = ScanTool.exe
-
-ifdef MINGDIR
-endif
+BIN = compiled/ScanTool.exe
 
 $(BIN): $(OBJ)
-	$(CC) $(CFLAGS) -o $(BIN) $(OBJ) $(LIBS)
+	$(CC) $(CFLAGS) $(LIBS) -o $(BIN) $(OBJ)
 
 ifdef MINGDIR
 release:
@@ -65,7 +61,7 @@ veryclean: clean
 	rm -f $(BIN)
 
 scantool.res: scantool.rc scantool.ico
-	windres -O coff -o scantool.res -i scantool.rc
+	$(WINDRES_BIN) -O coff -o scantool.res -i scantool.rc
 
 main.o: main.c globals.h main_menu.h error_handlers.h options.h serial.h version.h
 	$(CC) $(CFLAGS) -c main.c
@@ -102,3 +98,11 @@ listports.o: listports.c listports.h
 
 get_port_names.o: get_port_names.c listports.h get_port_names.h
 	$(CC) $(CFLAGS) -c get_port_names.c
+
+build:
+	docker build --target build -t scantool .
+	docker create -it --name scantool scantool
+	docker cp scantool:/app/compiled ./compiled
+	docker rm -fv scantool
+
+.PHONY: build
